@@ -67,6 +67,68 @@ alter table orders add column if not exists customer_name text;
 alter table orders add column if not exists phone         text;
 alter table orders add column if not exists address       text;
 alter table orders add column if not exists email         text;
+alter table orders add column if not exists updated_at    timestamptz not null default now();
+
+-- Normalises the old two-stage status vocabulary ("confirmed"/"packed"/"delivered"/"cancelled")
+-- onto the new five-stage tracking flow. Existing orders are kept, only the label changes.
+update orders set status = 'preparing' where status = 'packed';
+update orders set status = 'confirmed' where status is null or status = '';
+
+-- ---------- ORDER STATUS HISTORY ----------
+-- One row per status change (plus the initial "pending" row on insert). Powers the
+-- customer-facing tracking timeline. Never written to directly from the client —
+-- only by the trigger below — so it can't be forged.
+create table if not exists order_status_history (
+  id          bigint generated always as identity primary key,
+  order_id    bigint not null references orders(id) on delete cascade,
+  status      text not null,
+  created_at  timestamptz not null default now()
+);
+create index if not exists order_status_history_order_id_idx on order_status_history(order_id);
+
+-- Backfill a history row for any pre-existing order that doesn't have one yet,
+-- so the tracking timeline has at least one entry for old orders.
+insert into order_status_history (order_id, status, created_at)
+select o.id, o.status, o.created_at
+from orders o
+where not exists (select 1 from order_status_history h where h.order_id = o.id);
+
+-- Keeps updated_at current and appends a history row whenever the status actually changes
+-- (also fires once on insert so every order starts with a history entry).
+create or replace function handle_order_status_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if TG_OP = 'INSERT' then
+    insert into order_status_history (order_id, status) values (new.id, new.status);
+    return new;
+  end if;
+  if TG_OP = 'UPDATE' then
+    new.updated_at := now();
+    if new.status is distinct from old.status then
+      insert into order_status_history (order_id, status) values (new.id, new.status);
+    end if;
+    return new;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_status_insert on orders;
+create trigger orders_status_insert
+  after insert on orders
+  for each row execute function handle_order_status_change();
+
+drop trigger if exists orders_status_update on orders;
+create trigger orders_status_update
+  before update on orders
+  for each row execute function handle_order_status_change();
+
+-- New orders now start life as "pending" ("Order Placed"), matching the tracking timeline.
+alter table orders alter column status set default 'pending';
 
 -- =========================================================
 -- ROW LEVEL SECURITY
@@ -82,6 +144,7 @@ alter table cart_items enable row level security;
 alter table likes enable row level security;
 alter table orders enable row level security;
 alter table admins enable row level security;
+alter table order_status_history enable row level security;
 
 -- is_admin(): true only for a logged-in Supabase Auth user whose id
 -- appears in the admins table. security definer so it can read the
@@ -153,6 +216,82 @@ create policy "Admins can update order status" on orders
 drop policy if exists "Admins can delete orders" on orders;
 create policy "Admins can delete orders" on orders
   for delete using (is_admin());
+
+-- order_status_history: only admins can read it directly. Customers reach their
+-- own order's history exclusively through get_order_tracking() below.
+drop policy if exists "Admins can view order status history" on order_status_history;
+create policy "Admins can view order status history" on order_status_history
+  for select using (is_admin());
+
+-- =========================================================
+-- CUSTOMER ORDER ACCESS (device_id, no Supabase Auth required)
+-- ---------------------------------------------------------
+-- Direct SELECT on "orders" stays admin-only (policy above) so a client can
+-- never list every order. Customers instead call these two functions with
+-- their own device_id; each one filters to that device_id *inside* the
+-- function before returning anything, so a shopper can only ever see rows
+-- that already match the id stored in their own browser.
+--
+-- SECURITY NOTE (see README "Customer accounts" section for the long
+-- version): device_id is a random token generated client-side and never
+-- authenticated — exactly like the existing cart_items/likes design. That
+-- makes this "possession of the id" security, not real account security:
+-- anyone who obtains a specific device_id (e.g. it leaks from that user's
+-- own browser storage) could call these functions with it. It is NOT
+-- guessable in practice (a long random string) and, unlike the previous
+-- fully-open policy, a visitor can no longer list *all* orders or browse
+-- other customers' data without already having their id. If you need
+-- real per-customer security (e.g. so a customer can never be shown
+-- another customer's order even with a leaked id), switch customers to
+-- Supabase Auth and add a "user_id uuid references auth.users" column to
+-- orders, then change these functions (and the RLS policy on orders) to
+-- check auth.uid() instead of a client-supplied device_id.
+-- =========================================================
+
+create or replace function get_my_orders(p_device_id text)
+returns setof orders
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select * from orders
+  where device_id = p_device_id
+  order by created_at desc;
+$$;
+
+create or replace function get_order_tracking(p_order_id bigint, p_device_id text)
+returns table (
+  order_id      bigint,
+  status        text,
+  created_at    timestamptz,
+  updated_at    timestamptz,
+  total         numeric,
+  items         jsonb,
+  customer_name text,
+  phone         text,
+  address       text,
+  history       jsonb
+)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select
+    o.id, o.status, o.created_at, o.updated_at, o.total, o.items,
+    o.customer_name, o.phone, o.address,
+    coalesce(
+      (select jsonb_agg(jsonb_build_object('status', h.status, 'created_at', h.created_at) order by h.created_at)
+       from order_status_history h where h.order_id = o.id),
+      '[]'::jsonb
+    ) as history
+  from orders o
+  where o.id = p_order_id and o.device_id = p_device_id;
+$$;
+
+grant execute on function get_my_orders(text) to anon, authenticated;
+grant execute on function get_order_tracking(bigint, text) to anon, authenticated;
 
 -- =========================================================
 -- STORAGE — product photos

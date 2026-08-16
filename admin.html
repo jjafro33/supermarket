@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEELE admin — Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+  /* ============ TOKENS (matches index.html) ============ */
+  :root{
+    --green-deep:#1B4332;
+    --green-mid:#2D6A4F;
+    --green-fresh:#52B788;
+    --green-pale:#D8F3DC;
+    --green-whisper:#F1FAF3;
+    --cream:#FFFCF5;
+    --mango:#FFB627;
+    --mango-deep:#F08C00;
+    --tomato:#E63946;
+    --sky:#1D5FA6;
+    --sky-pale:#DCEFFF;
+    --ink:#1B2E28;
+    --ink-soft:#4A5D55;
+    --white:#FFFFFF;
+    --line:#E4EEE6;
+    --shadow-soft: 0 10px 30px -12px rgba(27,67,50,0.18);
+    --shadow-lift: 0 20px 45px -15px rgba(27,67,50,0.28);
+    --radius-lg: 26px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --ease: cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Plus Jakarta Sans', sans-serif; background:var(--green-whisper);
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces', serif; letter-spacing:-0.01em;}
+  a{text-decoration:none; color:inherit;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  img,svg{display:block;}
+  input,textarea,select{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--mango); outline-offset:2px; border-radius:6px;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  /* ============ LOGIN SCREEN ============ */
+  .login-wrap{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:radial-gradient(circle at 20% 15%, rgba(82,183,136,0.18), transparent 45%),
+               radial-gradient(circle at 85% 85%, rgba(255,182,39,0.14), transparent 45%), var(--green-whisper);
+  }
+  .login-card{
+    width:100%; max-width:400px; background:var(--white); border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-lift); padding:40px 36px; text-align:left;
+  }
+  .login-logo{display:flex; align-items:center; gap:10px; margin-bottom:22px;}
+  .login-logo .mark{width:38px; height:38px; border-radius:50%; overflow:hidden; flex-shrink:0;}
+  .login-logo .mark svg{width:100%; height:100%;}
+  .login-logo b{font-family:'Fraunces', serif; font-size:17px; color:var(--green-deep); display:block; line-height:1.1;}
+  .login-logo span{font-size:10.5px; letter-spacing:0.12em; color:var(--ink-soft); font-weight:700;}
+  .login-card h1{font-size:23px; margin:0 0 6px; color:var(--green-deep);}
+  .login-card p.sub{color:var(--ink-soft); font-size:13.5px; margin:0 0 24px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:7px;}
+  .field input, .field select{
+    width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px;
+    font-size:14px; color:var(--ink); background:var(--green-whisper);
+    transition:border-color .25s var(--ease), box-shadow .25s var(--ease);
+  }
+  .field input:focus, .field select:focus{outline:none; border-color:var(--green-fresh); box-shadow:0 0 0 4px var(--green-pale); background:#fff;}
+  .form-error{background:#FDECEC; color:#B3261E; font-size:12.5px; font-weight:600; padding:10px 14px; border-radius:12px; margin-bottom:16px; display:none;}
+  .form-error.show{display:block;}
+  .btn-primary{
+    width:100%; padding:13px; border-radius:999px; font-weight:800; font-size:14px;
+    background:var(--green-deep); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:all .25s var(--ease);
+  }
+  .btn-primary:hover{background:var(--green-mid); transform:translateY(-2px); box-shadow:var(--shadow-soft);}
+  .login-foot{margin-top:20px; font-size:12px; color:var(--ink-soft); text-align:center;}
+  .login-foot a{color:var(--green-mid); font-weight:700;}
+  .spinner-screen{min-height:100vh; display:flex; align-items:center; justify-content:center; color:var(--ink-soft); font-weight:700;}
+
+  /* ============ DASHBOARD SHELL ============ */
+  .dash{display:none;}
+  .dash.show{display:block;}
+  .topbar{position:sticky; top:0; z-index:20; background:var(--green-deep); color:#fff; box-shadow:0 4px 16px rgba(0,0,0,0.12);}
+  .topbar-inner{max-width:1320px; margin:0 auto; padding:16px 28px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;}
+  .topbar .brand{display:flex; align-items:center; gap:10px; flex-shrink:0;}
+  .topbar .brand .mark{width:34px; height:34px; border-radius:50%; overflow:hidden;}
+  .topbar .brand .mark svg{width:100%; height:100%;}
+  .topbar .brand h1{margin:0; font-size:16.5px; line-height:1.15;}
+  .topbar .brand .sub{font-size:11px; color:#BFDBC9;}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap;}
+  .tab{padding:9px 16px; border-radius:999px; font-weight:700; font-size:13px; color:#D7EBDD; background:rgba(255,255,255,0.09); transition:all .25s var(--ease); white-space:nowrap;}
+  .tab.active{background:#fff; color:var(--green-deep);}
+  .topbar-right{display:flex; align-items:center; gap:10px; margin-left:auto;}
+  .bell-btn{position:relative; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; transition:all .2s var(--ease);}
+  .bell-btn:hover{background:rgba(255,255,255,0.18);}
+  .bell-btn svg{width:17px; height:17px; color:#fff;}
+  .bell-btn .dot{position:absolute; top:6px; right:7px; width:9px; height:9px; border-radius:50%; background:var(--tomato); border:2px solid var(--green-deep); display:none;}
+  .bell-btn.unread .dot{display:block;}
+  .sound-btn{padding:9px 14px; border-radius:999px; font-weight:700; font-size:12.5px; background:rgba(255,255,255,0.12); color:#fff; white-space:nowrap; transition:all .2s var(--ease);}
+  .sound-btn:hover{background:rgba(255,255,255,0.2);}
+  .sound-btn.on{background:var(--mango); color:var(--green-deep);}
+  .logout-btn{padding:9px 16px; border-radius:999px; font-weight:700; font-size:12.5px; background:rgba(255,255,255,0.12); color:#fff; white-space:nowrap; transition:all .2s var(--ease);}
+  .logout-btn:hover{background:rgba(255,255,255,0.2);}
+
+  .notif-panel{
+    position:fixed; top:64px; right:24px; width:340px; max-height:70vh; overflow-y:auto;
+    background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-lift); z-index:60;
+    padding:8px; display:none; flex-direction:column; gap:6px;
+  }
+  .notif-panel.show{display:flex;}
+  .notif-panel .empty{padding:26px 14px; text-align:center; color:var(--ink-soft); font-size:13px;}
+  .notif-item{padding:12px 14px; border-radius:12px; background:var(--green-whisper); font-size:13px;}
+  .notif-item b{display:block; color:var(--green-deep); font-size:13px; margin-bottom:2px;}
+  .notif-item .t{font-size:11px; color:var(--ink-soft); margin-top:3px;}
+
+  .dash-body{max-width:1320px; margin:0 auto; padding:28px 28px 90px;}
+  .section-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:16px; flex-wrap:wrap;}
+  .section-head h2{margin:0; font-size:21px; color:var(--green-deep);}
+  .section-head p{margin:4px 0 0; color:var(--ink-soft); font-size:13px;}
+
+  /* ---- stat cards ---- */
+  .stat-grid{display:grid; grid-template-columns:repeat(6, 1fr); gap:14px; margin-bottom:28px;}
+  .stat-card{background:#fff; border-radius:var(--radius-md); padding:18px 18px; box-shadow:var(--shadow-soft); position:relative; overflow:hidden;}
+  .stat-card .n{font-family:'Fraunces', serif; font-size:26px; font-weight:700; color:var(--green-deep);}
+  .stat-card .l{font-size:11.5px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:0.03em; margin-top:4px;}
+  .stat-card.accent-mango .n{color:var(--mango-deep);}
+  .stat-card.accent-sky .n{color:var(--sky);}
+  .stat-card.accent-green .n{color:var(--green-fresh);}
+  .stat-card.accent-tomato .n{color:var(--tomato);}
+  @media (max-width:1100px){ .stat-grid{grid-template-columns:repeat(3, 1fr);} }
+  @media (max-width:620px){ .stat-grid{grid-template-columns:repeat(2, 1fr);} }
+
+  .btn-small{padding:10px 18px; border-radius:999px; font-weight:700; font-size:13px; background:var(--green-deep); color:#fff; transition:all .25s var(--ease); display:inline-flex; align-items:center; gap:6px;}
+  .btn-small:hover{background:var(--green-mid); transform:translateY(-2px);}
+  .btn-small.ghost{background:var(--white); color:var(--green-deep); border:1.5px solid var(--line);}
+  .btn-small.danger{background:#FDECEC; color:#B3261E;}
+
+  .table-wrap{background:#fff; border-radius:22px; box-shadow:var(--shadow-soft); overflow-x:auto;}
+  table.admin-table{width:100%; border-collapse:collapse; min-width:820px;}
+  table.admin-table th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:16px 18px; border-bottom:1.5px solid var(--line); white-space:nowrap;}
+  table.admin-table td{padding:14px 18px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
+  table.admin-table tr:last-child td{border-bottom:none;}
+  table.admin-table tr.is-new{animation:rowFlash 2.2s var(--ease);}
+  @keyframes rowFlash{0%{background:var(--green-pale);} 100%{background:transparent;}}
+  table.admin-table .p-thumb{width:44px; height:44px; border-radius:12px; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;}
+  table.admin-table .p-thumb img{width:100%; height:100%; object-fit:cover;}
+  table.admin-table .p-thumb svg{width:24px;height:24px;}
+  .p-name-cell{display:flex; align-items:center; gap:12px;}
+  .p-name-cell .n{font-weight:700;}
+  .p-name-cell .c{font-size:11.5px; color:var(--ink-soft);}
+  .code-chip{font-family:'JetBrains Mono', monospace; background:var(--green-whisper); color:var(--green-deep); padding:3px 9px; border-radius:8px; font-size:11.5px; font-weight:700;}
+  .stock-chip{font-weight:700;}
+  .stock-chip.low{color:var(--mango-deep);}
+  .stock-chip.out{color:var(--tomato);}
+  .row-actions{display:flex; gap:8px;}
+  .icon-mini{width:32px; height:32px; border-radius:50%; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; transition:all .2s var(--ease);}
+  .icon-mini:hover{background:var(--green-pale);}
+  .icon-mini svg{width:14px;height:14px; color:var(--green-deep);}
+  .icon-mini.danger:hover{background:#FDECEC;}
+  .icon-mini.danger svg{color:#B3261E;}
+  .status-pill{padding:4px 11px; border-radius:999px; font-size:11px; font-weight:800; text-transform:capitalize; white-space:nowrap; display:inline-block;}
+  .status-pill.pending{background:#FFF3D6; color:var(--mango-deep);}
+  .status-pill.confirmed{background:var(--green-pale); color:var(--green-deep);}
+  .status-pill.preparing{background:#FFE8CC; color:#B15A00;}
+  .status-pill.out_for_delivery{background:var(--sky-pale); color:var(--sky);}
+  .status-pill.delivered{background:#D8F3DC; color:#1B4332;}
+  .status-pill.cancelled{background:#FDECEC; color:#B3261E;}
+  .status-select{border:1.5px solid var(--line); border-radius:10px; padding:7px 10px; font-size:12.5px; font-weight:700; background:#fff; color:var(--ink);}
+  .order-items-cell{max-width:230px;}
+  .order-items-cell .oi{font-size:12.5px; margin-bottom:2px;}
+  .order-items-cell .oi .code-chip{margin-right:4px;}
+  .admin-empty{text-align:center; padding:70px 20px; color:var(--ink-soft);}
+  .admin-loading{text-align:center; padding:70px 20px; color:var(--ink-soft); font-weight:600;}
+
+  .img-upload{display:flex; align-items:center; gap:16px;}
+  .img-upload .preview{width:76px; height:76px; border-radius:16px; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; border:1.5px dashed var(--line);}
+  .img-upload .preview img{width:100%; height:100%; object-fit:cover;}
+  .img-upload .preview svg{width:30px;height:30px; color:var(--green-fresh);}
+  .img-upload label.upload-btn{padding:10px 16px; border-radius:12px; border:1.5px solid var(--line); font-weight:700; font-size:12.5px; color:var(--green-deep); cursor:pointer; transition:all .2s var(--ease);}
+  .img-upload label.upload-btn:hover{border-color:var(--green-fresh); background:var(--green-whisper);}
+  .img-upload input[type=file]{display:none;}
+
+  /* ---- modal (product editor) ---- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(27,46,40,0.5); backdrop-filter:blur(3px); z-index:400;
+    display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .3s var(--ease); padding:20px;
+  }
+  .modal-overlay.show{opacity:1; pointer-events:auto;}
+  .modal-box{background:#fff; border-radius:var(--radius-lg); padding:34px; width:480px; max-width:100%; max-height:88vh; overflow-y:auto; position:relative; box-shadow:var(--shadow-lift);}
+  .modal-box h3{font-size:21px; color:var(--green-deep); margin:0 0 6px;}
+  .modal-box .sub{color:var(--ink-soft); font-size:13.5px; margin:0 0 22px;}
+  .field-row{display:flex; gap:12px;}
+  .field-row .field{flex:1;}
+  .field textarea{resize:vertical; min-height:70px; width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; font-family:inherit; font-size:14px; background:var(--green-whisper);}
+  .field textarea:focus{outline:none; border-color:var(--green-fresh); box-shadow:0 0 0 4px var(--green-pale); background:#fff;}
+  .modal-close-x{position:absolute; top:18px; right:18px; width:34px; height:34px; border-radius:50%; background:var(--green-whisper); display:flex; align-items:center; justify-content:center;}
+  .modal-close-x svg{width:14px;height:14px; color:var(--green-deep);}
+
+  .toast-wrap{position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:600; display:flex; flex-direction:column; gap:10px; align-items:center; width:100%; max-width:420px; padding:0 16px;}
+  .toast{background:var(--ink); color:#fff; padding:13px 20px; border-radius:999px; font-size:13.5px; font-weight:600; box-shadow:var(--shadow-lift); display:flex; align-items:center; gap:10px; animation:toastIn .3s var(--ease);}
+  .toast.order{background:var(--green-deep);}
+  @keyframes toastIn{from{opacity:0; transform:translateY(-14px);} to{opacity:1; transform:translateY(0);}}
+
+  @media (max-width:720px){
+    .modal-box{padding:26px 20px;}
+    .dash-body{padding:20px 16px 90px;}
+    .notif-panel{right:12px; left:12px; width:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOADING ============ -->
+<div class="spinner-screen" id="bootScreen">Loading admin…</div>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="loginScreen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="mark" id="loginMark"></span>
+      <span>
+        <b>NEELE</b>
+        <span>SUPERMARKET ADMIN</span>
+      </span>
+    </div>
+    <h1>Admin sign in</h1>
+    <p class="sub">Manage products, stock and incoming orders.</p>
+    <div class="form-error" id="loginError"></div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginEmail">Admin email</label>
+        <input type="email" id="loginEmail" autocomplete="username" placeholder="you@neelesupermarket.com" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password" placeholder="Password" required>
+      </div>
+      <button type="submit" class="btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/></svg>
+        Log in
+      </button>
+    </form>
+    <p class="login-foot"><a href="index.html">← Back to storefront</a></p>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div class="dash" id="dash">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="mark" id="brandMark"></span>
+        <div>
+          <h1>NEELE admin</h1>
+          <div class="sub" id="connSub">Connecting…</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="products">Products</button>
+        <button class="tab" data-tab="orders">Orders</button>
+      </div>
+      <div class="topbar-right">
+        <button class="sound-btn" id="soundBtn">🔊 Enable Order Notifications</button>
+        <button class="bell-btn" id="bellBtn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot" id="bellDot"></span>
+        </button>
+        <button class="logout-btn" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-panel" id="notifPanel"></div>
+
+  <div class="dash-body">
+
+    <!-- ---- OVERVIEW ---- -->
+    <div id="viewOverview">
+      <div class="section-head">
+        <div>
+          <h2>Dashboard overview</h2>
+          <p>A snapshot of your storefront right now.</p>
+        </div>
+        <button class="btn-small ghost" id="refreshOverviewBtn">Refresh</button>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card"><div class="n">—</div><div class="l">Total products</div></div>
+        <div class="stat-card"><div class="n">—</div><div class="l">Total orders</div></div>
+        <div class="stat-card accent-mango"><div class="n">—</div><div class="l">Pending</div></div>
+        <div class="stat-card accent-green"><div class="n">—</div><div class="l">Confirmed</div></div>
+        <div class="stat-card accent-sky"><div class="n">—</div><div class="l">Out for delivery</div></div>
+        <div class="stat-card accent-tomato"><div class="n">—</div><div class="l">Delivered</div></div>
+      </div>
+      <div class="section-head"><h2 style="font-size:17px;">Latest orders</h2></div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
+          <tbody id="overviewOrdersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- PRODUCTS ---- -->
+    <div id="viewProducts" style="display:none;">
+      <div class="section-head">
+        <div><h2>Products</h2><p>Add, edit, restock or remove items from the storefront.</p></div>
+        <button class="btn-small" id="addProductBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+          Add product
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Product</th><th>Code</th><th>Category</th><th>Price</th><th>Offer price</th><th>Stock</th><th></th></tr></thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- ORDERS ---- -->
+    <div id="viewOrders" style="display:none;">
+      <div class="section-head">
+        <div><h2>Orders</h2><p>Update status here — customers see it update automatically.</p></div>
+        <button class="btn-small ghost" id="refreshOrdersBtn">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>Order</th><th>Customer</th><th>Contact</th><th>Address</th><th>Product(s)</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ PRODUCT EDITOR MODAL ============ -->
+<div class="modal-overlay" id="productEditorOverlay">
+  <div class="modal-box">
+    <button class="modal-close-x" id="productEditorClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 id="productEditorTitle">Add product</h3>
+    <p class="sub">Changes go live on the storefront immediately.</p>
+    <div class="form-error" id="productEditorError"></div>
+    <form id="productEditorForm">
+      <div class="field">
+        <label>Photo</label>
+        <div class="img-upload">
+          <div class="preview" id="peImgPreview"></div>
+          <label class="upload-btn" for="peImgFile">Upload photo</label>
+          <input type="file" id="peImgFile" accept="image/*">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="peName">Name</label><input type="text" id="peName" required></div>
+        <div class="field"><label for="peCode">Product code</label><input type="text" id="peCode" placeholder="NS-017"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="peCategory">Category</label><select id="peCategory"></select></div>
+        <div class="field"><label for="peUnit">Unit</label><input type="text" id="peUnit" placeholder="1 kg" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="pePrice">Price (₹)</label><input type="number" id="pePrice" min="0" step="0.01" required></div>
+        <div class="field"><label for="peOfferPrice">Offer price (₹)</label><input type="number" id="peOfferPrice" min="0" step="0.01"></div>
+        <div class="field"><label for="peStock">Stock</label><input type="number" id="peStock" min="0" step="1" required></div>
+      </div>
+      <div class="field">
+        <label for="peDesc">Description</label>
+        <textarea id="peDesc" placeholder="Short product description"></textarea>
+      </div>
+      <button type="submit" class="btn-primary">Save product</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* =========================================================
+   NEELE admin — dashboard logic
+   Separate page from the storefront. Nothing here is ever
+   loaded by index.html; a customer never sees this code.
+========================================================= */
+const SUPABASE_URL = "https://immpelmybnenrmnoouct.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltbXBlbG15Ym5lbnJtbm9vdWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MzkzNjksImV4cCI6MjEwMjQxNTM2OX0.TrIgYd1Y1ToXIiwIR-y-5T97SCqkLxDGoCPTr4bJMvI";
+
+let sb = null, SUPA_READY = false;
+try{
+  if (SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes("YOUR_") && window.supabase){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    SUPA_READY = true;
+  }
+}catch(e){ console.warn("Supabase init failed.", e); }
+
+const STATUS_FLOW = ["pending","confirmed","preparing","out_for_delivery","delivered"];
+const STATUS_LABEL = {pending:"Pending", confirmed:"Confirmed", preparing:"Preparing", out_for_delivery:"Out for delivery", delivered:"Delivered", cancelled:"Cancelled"};
+
+const ICONS = {
+  apple:`<svg viewBox="0 0 100 100"><path d="M50 30c-4-10-15-14-24-9 3 9 12 13 20 12" fill="#2D6A4F"/><path d="M50 34c16 0 28 14 28 32s-12 30-28 30-28-14-28-30 12-32 28-32z" fill="#E63946"/><ellipse cx="40" cy="52" rx="7" ry="10" fill="#fff" opacity="0.25"/></svg>`,
+  banana:`<svg viewBox="0 0 100 100"><path d="M25 70c5 14 22 20 38 15 15-5 24-16 26-27-3 3-9 6-14 6 5-6 8-14 6-22-6 12-18 20-30 24-13 4-22 2-26-4-3 3-3 6 0 8z" fill="#FFB627"/></svg>`,
+  orange:`<svg viewBox="0 0 100 100"><circle cx="50" cy="55" r="32" fill="#FF9F1C"/><path d="M50 23c3-6 9-9 15-8-2 6-8 10-15 8z" fill="#52B788"/></svg>`,
+  grapes:`<svg viewBox="0 0 100 100"><g fill="#7B4CA0"><circle cx="40" cy="40" r="9"/><circle cx="55" cy="40" r="9"/><circle cx="33" cy="55" r="9"/><circle cx="48" cy="55" r="9"/><circle cx="63" cy="55" r="9"/><circle cx="40" cy="70" r="9"/><circle cx="55" cy="70" r="9"/></g></svg>`,
+  carrot:`<svg viewBox="0 0 100 100"><path d="M45 30c8-10 20-14 26-8-3 8-14 12-22 12z" fill="#52B788"/><path d="M32 38c22 0 36 14 36 14L44 84a5 5 0 0 1-8-1L28 44a6 6 0 0 1 4-6z" fill="#FF9F1C"/></svg>`,
+  broccoli:`<svg viewBox="0 0 100 100"><g fill="#2D6A4F"><circle cx="38" cy="35" r="14"/><circle cx="58" cy="30" r="14"/><circle cx="66" cy="46" r="13"/><circle cx="46" cy="46" r="15"/></g><rect x="46" y="52" width="12" height="30" rx="5" fill="#D8C39A"/></svg>`,
+  tomato:`<svg viewBox="0 0 100 100"><circle cx="50" cy="58" r="30" fill="#E63946"/><path d="M50 28c-6-6-16-6-20 0 5 4 14 5 20 2 6 3 15 2 20-2-4-6-14-6-20 0z" fill="#52B788"/></svg>`,
+  potato:`<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="22" fill="#C68E5E"/></svg>`,
+  milk:`<svg viewBox="0 0 100 100"><path d="M40 20h20l4 14-4 6v42a6 6 0 0 1-6 6H46a6 6 0 0 1-6-6V40l-4-6z" fill="#F1FAF3" stroke="#2D6A4F" stroke-width="2.5"/></svg>`,
+  cheese:`<svg viewBox="0 0 100 100"><path d="M15 65L60 25l25 18-8 32H20z" fill="#FFC947"/></svg>`,
+  egg:`<svg viewBox="0 0 100 100"><ellipse cx="42" cy="55" rx="16" ry="21" fill="#FFF7E6" stroke="#E9D8B4" stroke-width="1.5"/><ellipse cx="64" cy="62" rx="16" ry="21" fill="#FFF7E6" stroke="#E9D8B4" stroke-width="1.5"/></svg>`,
+  bread:`<svg viewBox="0 0 100 100"><path d="M20 55a30 26 0 0 1 60 0v20a6 6 0 0 1-6 6H26a6 6 0 0 1-6-6z" fill="#D9A15D"/></svg>`,
+  croissant:`<svg viewBox="0 0 100 100"><path d="M20 60c0-20 16-35 30-35 18 0 32 15 30 34-10-8-20-6-24 0-4-8-14-10-22-4 4-6 2-14-6-16-6 4-8 13-8 21z" fill="#E8A33D"/></svg>`,
+  chips:`<svg viewBox="0 0 100 100"><path d="M30 20h40l6 60a6 6 0 0 1-6 6H30a6 6 0 0 1-6-6z" fill="#E63946"/><circle cx="50" cy="55" r="14" fill="#FFC947"/></svg>`,
+  cookie:`<svg viewBox="0 0 100 100"><circle cx="50" cy="52" r="30" fill="#D9A15D"/></svg>`,
+  juice:`<svg viewBox="0 0 100 100"><path d="M38 18h24l2 14H36z" fill="#FF9F1C"/><path d="M36 32h28l4 46a6 6 0 0 1-6 6H38a6 6 0 0 1-6-6z" fill="#FFB84D"/></svg>`,
+  leaf:`<svg viewBox="0 0 100 100"><path d="M20 80C20 40 50 20 82 18 80 55 55 78 20 80z" fill="#52B788"/></svg>`,
+};
+function logoSVG(){
+  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#D8F3DC"/><path d="M28 60c0-24 18-38 44-40-2 26-18 40-44 40z" fill="#2D6A4F"/><circle cx="66" cy="34" r="6" fill="#FFB627"/></svg>`;
+}
+document.getElementById("loginMark").innerHTML = logoSVG();
+document.getElementById("brandMark").innerHTML = logoSVG();
+
+const CATEGORIES = [
+  {key:"fruits", label:"Fruits"}, {key:"vegetables", label:"Vegetables"}, {key:"dairy", label:"Dairy & Eggs"},
+  {key:"bakery", label:"Bakery"}, {key:"snacks", label:"Snacks"}, {key:"beverages", label:"Beverages"},
+];
+
+let currentUser = null;
+let PRODUCTS = [];
+let ORDERS = [];
+const PRODUCT_IMAGES_BUCKET = "product-images";
+let peImageDataUrl = null, peImageFile = null, editingProductId = null;
+
+function productCode(p){ return p.product_code || ("NS-" + String(p.id).padStart(3,"0")); }
+function productMedia(p){ return p.image_url ? `<img src="${p.image_url}">` : (ICONS[p.icon] || ICONS.leaf); }
+
+/* ---------- toast ---------- */
+function showToast(message, cls){
+  const wrap = document.getElementById("toastWrap");
+  const t = document.createElement("div");
+  t.className = "toast" + (cls ? " " + cls : "");
+  t.textContent = message;
+  wrap.appendChild(t);
+  setTimeout(()=>t.remove(), 3400);
+}
+
+/* ---------- notification sound (Web Audio, no external asset) ---------- */
+let audioCtx = null, soundEnabled = false;
+function ensureAudioCtx(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  return audioCtx;
+}
+function playBeep(){
+  if(!soundEnabled) return;
+  const ctx = ensureAudioCtx();
+  if(!ctx) return;
+  if(ctx.state === "suspended") ctx.resume();
+  const now = ctx.currentTime;
+  [880, 1180].forEach((freq, i)=>{
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, now + i*0.16);
+    gain.gain.linearRampToValueAtTime(0.18, now + i*0.16 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + i*0.16 + 0.28);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + i*0.16);
+    osc.stop(now + i*0.16 + 0.3);
+  });
+}
+document.getElementById("soundBtn").addEventListener("click", ()=>{
+  ensureAudioCtx();
+  if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  soundEnabled = true;
+  localStorage.setItem("neele_admin_sound_enabled", "1");
+  document.getElementById("soundBtn").classList.add("on");
+  document.getElementById("soundBtn").textContent = "🔔 Notifications on";
+  playBeep();
+});
+if(localStorage.getItem("neele_admin_sound_enabled") === "1"){
+  soundEnabled = true;
+  document.getElementById("soundBtn").classList.add("on");
+  document.getElementById("soundBtn").textContent = "🔔 Notifications on";
+}
+
+/* ---------- notification panel (new-order log, deduped by order id) ---------- */
+let notifications = [];
+let unreadCount = 0;
+function pushNotification(text, sub){
+  notifications.unshift({text, sub, at: new Date()});
+  notifications = notifications.slice(0, 20);
+  unreadCount++;
+  renderNotifPanel();
+  document.getElementById("bellBtn").classList.add("unread");
+}
+function renderNotifPanel(){
+  const panel = document.getElementById("notifPanel");
+  if(!notifications.length){ panel.innerHTML = `<div class="empty">No notifications yet.</div>`; return; }
+  panel.innerHTML = notifications.map(n=>`
+    <div class="notif-item"><b>${n.text}</b>${n.sub ? `<div>${n.sub}</div>` : ""}<div class="t">${n.at.toLocaleTimeString()}</div></div>
+  `).join("");
+}
+document.getElementById("bellBtn").addEventListener("click", ()=>{
+  const panel = document.getElementById("notifPanel");
+  panel.classList.toggle("show");
+  if(panel.classList.contains("show")){
+    unreadCount = 0;
+    document.getElementById("bellBtn").classList.remove("unread");
+  }
+});
+document.addEventListener("click", (e)=>{
+  const panel = document.getElementById("notifPanel");
+  if(panel.classList.contains("show") && !panel.contains(e.target) && e.target.id !== "bellBtn" && !document.getElementById("bellBtn").contains(e.target)){
+    panel.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   AUTH
+========================================================= */
+async function checkIsAdmin(){
+  if(!SUPA_READY) return false;
+  try{
+    const {data:{user}} = await sb.auth.getUser();
+    if(!user) return false;
+    const {data, error} = await sb.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    if(error) return false;
+    return !!data;
+  }catch(e){ return false; }
+}
+
+document.getElementById("loginForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const err = document.getElementById("loginError");
+  err.classList.remove("show");
+  if(!SUPA_READY){
+    err.textContent = "Connect Supabase first — see README for setup steps.";
+    err.classList.add("show");
+    return;
+  }
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  try{
+    const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+    if(error) throw error;
+    const admin = await checkIsAdmin();
+    if(!admin){
+      await sb.auth.signOut();
+      err.textContent = "This account isn't set up as an admin.";
+      err.classList.add("show");
+      return;
+    }
+    currentUser = data.user;
+    enterDashboard();
+  }catch(ex){
+    err.textContent = ex.message || "Incorrect email or password.";
+    err.classList.add("show");
+  }
+});
+
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  if(SUPA_READY){ try{ await sb.auth.signOut(); }catch(e){} }
+  currentUser = null;
+  document.getElementById("dash").classList.remove("show");
+  document.getElementById("loginScreen").style.display = "flex";
+});
+
+/* =========================================================
+   DASHBOARD SHELL
+========================================================= */
+function showTab(tab){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab === tab));
+  document.getElementById("viewOverview").style.display = tab === "overview" ? "" : "none";
+  document.getElementById("viewProducts").style.display = tab === "products" ? "" : "none";
+  document.getElementById("viewOrders").style.display = tab === "orders" ? "" : "none";
+  if(tab === "overview") loadOverview();
+  if(tab === "products") renderProducts();
+  if(tab === "orders") loadOrders();
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click", ()=>showTab(t.dataset.tab)));
+document.getElementById("refreshOverviewBtn").addEventListener("click", loadOverview);
+document.getElementById("refreshOrdersBtn").addEventListener("click", loadOrders);
+
+async function enterDashboard(){
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("bootScreen").style.display = "none";
+  document.getElementById("dash").classList.add("show");
+  document.getElementById("connSub").textContent = SUPA_READY ? "Connected to Supabase — changes save live." : "Demo mode — connect Supabase to manage a real store.";
+  await loadProducts();
+  showTab("overview");
+  subscribeRealtime();
+}
+
+/* =========================================================
+   DATA LOADING
+========================================================= */
+async function loadProducts(){
+  if(!SUPA_READY) return;
+  try{
+    const {data, error} = await sb.from("products").select("*").order("id");
+    if(error) throw error;
+    PRODUCTS = data || [];
+  }catch(e){ console.warn("Could not load products", e); }
+}
+
+async function loadOrders(){
+  const body = document.getElementById("ordersBody");
+  if(!SUPA_READY){ body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Connect Supabase to view orders.</div></td></tr>`; return; }
+  body.innerHTML = `<tr><td colspan="8"><div class="admin-loading">Loading orders…</div></td></tr>`;
+  try{
+    const {data, error} = await sb.from("orders").select("*").order("created_at", {ascending:false});
+    if(error) throw error;
+    ORDERS = data || [];
+    renderOrdersTable();
+  }catch(e){
+    body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Could not load orders.</div></td></tr>`;
+  }
+}
+
+async function loadOverview(){
+  if(!SUPA_READY) return;
+  try{
+    const {data, error} = await sb.from("orders").select("*").order("created_at", {ascending:false});
+    if(error) throw error;
+    ORDERS = data || [];
+    const counts = {pending:0, confirmed:0, preparing:0, out_for_delivery:0, delivered:0, cancelled:0};
+    ORDERS.forEach(o=>{ if(counts[o.status] !== undefined) counts[o.status]++; });
+    const cards = document.querySelectorAll("#statGrid .stat-card .n");
+    cards[0].textContent = PRODUCTS.length;
+    cards[1].textContent = ORDERS.length;
+    cards[2].textContent = counts.pending;
+    cards[3].textContent = counts.confirmed;
+    cards[4].textContent = counts.out_for_delivery;
+    cards[5].textContent = counts.delivered;
+
+    const body = document.getElementById("overviewOrdersBody");
+    if(!ORDERS.length){
+      body.innerHTML = `<tr><td colspan="5"><div class="admin-empty">No orders yet.</div></td></tr>`;
+    }else{
+      body.innerHTML = ORDERS.slice(0, 8).map(o=>orderOverviewRow(o)).join("");
+    }
+  }catch(e){ console.warn("Could not load overview", e); }
+}
+
+function orderOverviewRow(o){
+  const status = o.status || "pending";
+  const dt = o.created_at ? new Date(o.created_at).toLocaleString() : "";
+  return `<tr>
+    <td><span class="code-chip">NL${String(o.id).padStart(6,"0")}</span></td>
+    <td>${o.customer_name || "—"}</td>
+    <td>₹${o.total}</td>
+    <td><span class="status-pill ${status}">${STATUS_LABEL[status] || status}</span></td>
+    <td style="white-space:nowrap; font-size:12px; color:var(--ink-soft);">${dt}</td>
+  </tr>`;
+}
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+function renderProducts(){
+  const body = document.getElementById("productsBody");
+  if(!PRODUCTS.length){
+    body.innerHTML = `<tr><td colspan="7"><div class="admin-empty">No products yet. Add your first one.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = PRODUCTS.map(p=>{
+    const lowStock = p.stock<=6 && p.stock>0, outOfStock = p.stock<=0;
+    const hasOffer = p.offer_price !== null && p.offer_price !== undefined && Number(p.offer_price) < Number(p.price);
+    return `<tr>
+      <td>
+        <div class="p-name-cell">
+          <div class="p-thumb">${productMedia(p)}</div>
+          <div><div class="n">${p.name}</div><div class="c">${p.unit}</div></div>
+        </div>
+      </td>
+      <td><span class="code-chip">${productCode(p)}</span></td>
+      <td>${p.category}</td>
+      <td>₹${p.price}</td>
+      <td>${hasOffer ? "₹"+p.offer_price : "—"}</td>
+      <td><span class="stock-chip ${outOfStock?'out':lowStock?'low':''}">${p.stock}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-mini" data-edit-product="${p.id}" aria-label="Edit ${p.name}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-mini danger" data-delete-product="${p.id}" aria-label="Delete ${p.name}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+  body.querySelectorAll("[data-edit-product]").forEach(b=>b.addEventListener("click",()=>openProductEditor(parseInt(b.dataset.editProduct))));
+  body.querySelectorAll("[data-delete-product]").forEach(b=>b.addEventListener("click",()=>deleteProduct(parseInt(b.dataset.deleteProduct))));
+}
+
+const productEditorOverlay = document.getElementById("productEditorOverlay");
+function fillCategorySelect(){
+  document.getElementById("peCategory").innerHTML = CATEGORIES.map(c=>`<option value="${c.key}">${c.label}</option>`).join("");
+}
+function openProductEditor(id){
+  editingProductId = id || null;
+  peImageDataUrl = null; peImageFile = null;
+  fillCategorySelect();
+  document.getElementById("productEditorError").classList.remove("show");
+  document.getElementById("productEditorForm").reset();
+  const preview = document.getElementById("peImgPreview");
+  if(editingProductId){
+    const p = PRODUCTS.find(pp=>pp.id===editingProductId);
+    document.getElementById("productEditorTitle").textContent = "Edit product";
+    document.getElementById("peName").value = p.name;
+    document.getElementById("peCode").value = productCode(p);
+    document.getElementById("peCategory").value = p.category;
+    document.getElementById("peUnit").value = p.unit;
+    document.getElementById("pePrice").value = p.price;
+    document.getElementById("peOfferPrice").value = p.offer_price || "";
+    document.getElementById("peStock").value = p.stock;
+    document.getElementById("peDesc").value = p.desc || "";
+    preview.innerHTML = p.image_url ? `<img src="${p.image_url}">` : (ICONS[p.icon]||ICONS.leaf);
+  }else{
+    document.getElementById("productEditorTitle").textContent = "Add product";
+    preview.innerHTML = ICONS.leaf;
+  }
+  productEditorOverlay.classList.add("show");
+}
+function closeProductEditor(){ productEditorOverlay.classList.remove("show"); }
+document.getElementById("addProductBtn").addEventListener("click", ()=>openProductEditor(null));
+document.getElementById("productEditorClose").addEventListener("click", closeProductEditor);
+productEditorOverlay.addEventListener("click",(e)=>{ if(e.target===productEditorOverlay) closeProductEditor(); });
+
+document.getElementById("peImgFile").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  peImageFile = file;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    peImageDataUrl = reader.result;
+    document.getElementById("peImgPreview").innerHTML = `<img src="${peImageDataUrl}">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+async function uploadProductImage(productId){
+  if(!peImageFile) return null;
+  if(SUPA_READY){
+    try{
+      const ext = (peImageFile.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `products/${productId}-${Date.now()}.${ext}`;
+      const {error} = await sb.storage.from(PRODUCT_IMAGES_BUCKET).upload(path, peImageFile, {upsert:true});
+      if(error) throw error;
+      const {data} = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
+      return data.publicUrl;
+    }catch(e){
+      showToast("Photo upload failed, used a local preview instead");
+      return peImageDataUrl;
+    }
+  }
+  return peImageDataUrl;
+}
+
+document.getElementById("productEditorForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const err = document.getElementById("productEditorError");
+  err.classList.remove("show");
+  const name = document.getElementById("peName").value.trim();
+  const code = document.getElementById("peCode").value.trim();
+  const category = document.getElementById("peCategory").value;
+  const unit = document.getElementById("peUnit").value.trim();
+  const price = parseFloat(document.getElementById("pePrice").value);
+  const offerRaw = document.getElementById("peOfferPrice").value;
+  const offer_price = offerRaw === "" ? null : parseFloat(offerRaw);
+  const stock = parseInt(document.getElementById("peStock").value, 10);
+  const desc = document.getElementById("peDesc").value.trim();
+
+  if(!name || !unit || isNaN(price) || isNaN(stock)){
+    err.textContent = "Please fill in name, unit, price and stock.";
+    err.classList.add("show");
+    return;
+  }
+  if(!SUPA_READY){
+    err.textContent = "Connect Supabase to save products.";
+    err.classList.add("show");
+    return;
+  }
+  const isNew = !editingProductId;
+  const id = editingProductId || (Math.max(0, ...PRODUCTS.map(p=>p.id)) + 1);
+  let image_url = isNew ? null : PRODUCTS.find(p=>p.id===editingProductId)?.image_url || null;
+  const uploaded = await uploadProductImage(id);
+  if(uploaded) image_url = uploaded;
+
+  const record = {id, name, category, price, offer_price, unit, stock, icon: (isNew ? "leaf" : (PRODUCTS.find(p=>p.id===id)?.icon || "leaf")), image_url, product_code: code || null, desc};
+  try{
+    const {error} = await sb.from("products").upsert(record, {onConflict:"id"});
+    if(error) throw error;
+  }catch(ex){
+    err.textContent = "Could not save to Supabase: " + (ex.message || "unknown error");
+    err.classList.add("show");
+    return;
+  }
+  if(isNew) PRODUCTS.push(record);
+  else PRODUCTS = PRODUCTS.map(p=>p.id===id ? {...p, ...record} : p);
+  closeProductEditor();
+  renderProducts();
+  showToast(isNew ? "Product added" : "Product updated");
+});
+
+async function deleteProduct(id){
+  const p = PRODUCTS.find(pp=>pp.id===id);
+  if(!p) return;
+  if(!confirm(`Remove "${p.name}" from the storefront?`)) return;
+  if(SUPA_READY){
+    try{ const {error} = await sb.from("products").delete().eq("id", id); if(error) throw error; }
+    catch(e){ showToast("Could not delete from Supabase"); return; }
+  }
+  PRODUCTS = PRODUCTS.filter(pp=>pp.id!==id);
+  renderProducts();
+  showToast("Product removed");
+}
+
+/* =========================================================
+   ORDERS
+========================================================= */
+function renderOrdersTable(){
+  const body = document.getElementById("ordersBody");
+  if(!ORDERS.length){
+    body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">No orders yet.</div></td></tr>`;
+    return;
+  }
+  body.innerHTML = ORDERS.map(o=>{
+    const items = Array.isArray(o.items) ? o.items : [];
+    const itemsHtml = items.map(it=>`<div class="oi"><span class="code-chip">${it.product_code || ("#"+it.product_id)}</span>${it.name} × ${it.qty}</div>`).join("");
+    const status = o.status || "pending";
+    const dt = o.created_at ? new Date(o.created_at).toLocaleString() : "";
+    return `<tr data-order-row="${o.id}">
+      <td><span class="code-chip">NL${String(o.id).padStart(6,"0")}</span></td>
+      <td>${o.customer_name || "—"}${o.email ? `<div style="font-size:11.5px;color:var(--ink-soft);">${o.email}</div>`:""}</td>
+      <td>${o.phone || "—"}</td>
+      <td class="order-items-cell">${o.address || "—"}</td>
+      <td class="order-items-cell">${itemsHtml || "—"}</td>
+      <td>₹${o.total}</td>
+      <td>
+        <select class="status-select" data-order-status="${o.id}">
+          ${[...STATUS_FLOW,"cancelled"].map(s=>`<option value="${s}" ${s===status?'selected':''}>${STATUS_LABEL[s]}</option>`).join("")}
+        </select>
+      </td>
+      <td style="white-space:nowrap; font-size:12px; color:var(--ink-soft);">${dt}</td>
+    </tr>`;
+  }).join("");
+  body.querySelectorAll("[data-order-status]").forEach(sel=>{
+    sel.addEventListener("change", async ()=>{
+      const prev = sel.value;
+      sel.disabled = true;
+      try{
+        const {error} = await sb.from("orders").update({status: sel.value}).eq("id", sel.dataset.orderStatus);
+        if(error) throw error;
+        showToast("Order status updated to " + STATUS_LABEL[sel.value]);
+      }catch(e){
+        showToast("Could not update status");
+        sel.value = prev;
+      }finally{
+        sel.disabled = false;
+      }
+    });
+  });
+}
+
+/* =========================================================
+   REALTIME — new-order notifications
+   Works because the signed-in admin session passes the
+   is_admin() RLS check on "orders", so Postgres Changes
+   events are actually delivered to this client.
+========================================================= */
+let lastSeenOrderId = parseInt(localStorage.getItem("neele_admin_last_order_id") || "0", 10);
+let realtimeChannel = null;
+let pollTimer = null;
+
+function subscribeRealtime(){
+  if(!SUPA_READY) return;
+  // Seed lastSeenOrderId from current data so we don't replay old orders as "new" on first load.
+  sb.from("orders").select("id").order("id", {ascending:false}).limit(1).then(({data})=>{
+    const maxId = data && data[0] ? data[0].id : 0;
+    if(maxId > lastSeenOrderId){
+      lastSeenOrderId = maxId;
+      localStorage.setItem("neele_admin_last_order_id", String(lastSeenOrderId));
+    }
+  });
+
+  try{
+    realtimeChannel = sb.channel("admin-orders")
+      .on("postgres_changes", {event:"INSERT", schema:"public", table:"orders"}, (payload)=>{
+        handleNewOrder(payload.new);
+      })
+      .on("postgres_changes", {event:"UPDATE", schema:"public", table:"orders"}, ()=>{
+        if(document.getElementById("viewOverview").style.display !== "none") loadOverview();
+        if(document.getElementById("viewOrders").style.display !== "none") loadOrders();
+      })
+      .subscribe();
+  }catch(e){ console.warn("Realtime unavailable, falling back to polling.", e); }
+
+  // Lightweight polling fallback in case Realtime isn't enabled on the project —
+  // catches any new order within ~20s even without a live socket.
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(async ()=>{
+    if(!SUPA_READY) return;
+    try{
+      const {data} = await sb.from("orders").select("*").gt("id", lastSeenOrderId).order("id", {ascending:true});
+      (data || []).forEach(o=>handleNewOrder(o));
+    }catch(e){}
+  }, 20000);
+}
+
+function handleNewOrder(order){
+  if(!order || order.id <= lastSeenOrderId) return; // already notified — no repeat sound
+  lastSeenOrderId = order.id;
+  localStorage.setItem("neele_admin_last_order_id", String(lastSeenOrderId));
+  playBeep();
+  pushNotification(
+    `🔔 New Order Received — #NL${String(order.id).padStart(6,"0")}`,
+    `${order.customer_name || "Customer"} · ₹${order.total}`
+  );
+  showToast(`🔔 New order #NL${String(order.id).padStart(6,"0")} — ₹${order.total}`, "order");
+  if(document.getElementById("viewOverview").style.display !== "none") loadOverview();
+  if(document.getElementById("viewOrders").style.display !== "none") loadOrders();
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+(async function init(){
+  document.getElementById("bootScreen").style.display = "flex";
+  if(!SUPA_READY){
+    document.getElementById("bootScreen").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+    return;
+  }
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    currentUser = session?.user || null;
+    const admin = currentUser ? await checkIsAdmin() : false;
+    document.getElementById("bootScreen").style.display = "none";
+    if(admin){
+      enterDashboard();
+    }else{
+      if(currentUser) await sb.auth.signOut();
+      document.getElementById("loginScreen").style.display = "flex";
+    }
+    sb.auth.onAuthStateChange(async (_event, session)=>{
+      if(!session){
+        currentUser = null;
+        document.getElementById("dash").classList.remove("show");
+        document.getElementById("loginScreen").style.display = "flex";
+      }
+    });
+  }catch(e){
+    document.getElementById("bootScreen").style.display = "none";
+    document.getElementById("loginScreen").style.display = "flex";
+  }
+})();
+</script>
+</body>
+</html>

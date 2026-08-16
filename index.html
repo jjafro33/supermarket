@@ -452,68 +452,69 @@
   .price .now{color:var(--tomato);}
   .offer-tag{position:absolute; top:12px; right:12px; background:var(--tomato); color:#fff; font-size:10.5px; font-weight:800; padding:4px 9px; border-radius:999px; z-index:2;}
 
-  /* ============ ADMIN DASHBOARD ============ */
-  .admin-panel{position:fixed; inset:0; background:var(--cream); z-index:400; overflow-y:auto; transform:translateY(100%); opacity:0; transition:transform .4s var(--ease), opacity .4s var(--ease); pointer-events:none;}
-  .admin-panel.show{transform:translateY(0); opacity:1; pointer-events:auto;}
-  .admin-bar{position:sticky; top:0; background:var(--green-deep); color:#fff; z-index:5; box-shadow:0 4px 16px rgba(0,0,0,0.12);}
-  .admin-bar-inner{max-width:1240px; margin:0 auto; padding:18px 28px; display:flex; align-items:center; justify-content:space-between; gap:20px;}
-  .admin-bar h2{margin:0; font-size:18px; font-family:'Fraunces',serif;}
-  .admin-bar .sub{font-size:12px; color:#BFDBC9; margin-top:2px;}
-  .admin-tabs{display:flex; gap:8px;}
-  .admin-tab{padding:9px 18px; border-radius:999px; font-weight:700; font-size:13.5px; color:#D7EBDD; background:rgba(255,255,255,0.08); transition:all .25s var(--ease);}
-  .admin-tab.active{background:#fff; color:var(--green-deep);}
-  .admin-body{max-width:1240px; margin:0 auto; padding:32px 28px 80px;}
-  .admin-section-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; gap:16px; flex-wrap:wrap;}
-  .admin-section-head h3{margin:0; font-size:20px; color:var(--green-deep);}
-  .btn-small{padding:10px 18px; border-radius:999px; font-weight:700; font-size:13px; background:var(--green-deep); color:#fff; transition:all .25s var(--ease); display:inline-flex; align-items:center; gap:6px;}
-  .btn-small:hover{background:var(--green-mid); transform:translateY(-2px);}
-  .btn-small.ghost{background:var(--white); color:var(--green-deep); border:1.5px solid var(--line);}
-  .btn-small.danger{background:#FDECEC; color:#B3261E;}
-
-  .admin-table-wrap{background:#fff; border-radius:22px; box-shadow:var(--shadow-soft); overflow-x:auto;}
-  table.admin-table{width:100%; border-collapse:collapse; min-width:760px;}
-  table.admin-table th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:16px 18px; border-bottom:1.5px solid var(--line); white-space:nowrap;}
-  table.admin-table td{padding:14px 18px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
-  table.admin-table tr:last-child td{border-bottom:none;}
-  table.admin-table .p-thumb{width:44px; height:44px; border-radius:12px; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;}
-  table.admin-table .p-thumb img{width:100%; height:100%; object-fit:cover;}
-  table.admin-table .p-thumb svg{width:24px;height:24px;}
-  .p-name-cell{display:flex; align-items:center; gap:12px;}
-  .p-name-cell .n{font-weight:700;}
-  .p-name-cell .c{font-size:11.5px; color:var(--ink-soft);}
+  /* ============ ORDERS · TRACKING ============ */
   .code-chip{font-family:'JetBrains Mono', monospace; background:var(--green-whisper); color:var(--green-deep); padding:3px 9px; border-radius:8px; font-size:11.5px; font-weight:700;}
-  .stock-chip{font-weight:700;}
-  .stock-chip.low{color:var(--mango-deep);}
-  .stock-chip.out{color:var(--tomato);}
-  .row-actions{display:flex; gap:8px;}
-  .icon-mini{width:32px; height:32px; border-radius:50%; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; transition:all .2s var(--ease);}
-  .icon-mini:hover{background:var(--green-pale);}
-  .icon-mini svg{width:14px;height:14px; color:var(--green-deep);}
-  .icon-mini.danger:hover{background:#FDECEC;}
-  .icon-mini.danger svg{color:#B3261E;}
-  .status-pill{padding:4px 11px; border-radius:999px; font-size:11px; font-weight:800; text-transform:capitalize;}
+  .status-pill{padding:4px 11px; border-radius:999px; font-size:11px; font-weight:800; text-transform:capitalize; display:inline-block; white-space:nowrap;}
+  .status-pill.pending{background:#FFF3D6; color:var(--mango-deep);}
   .status-pill.confirmed{background:var(--green-pale); color:var(--green-deep);}
-  .status-pill.packed{background:#FFF3D6; color:var(--mango-deep);}
-  .status-pill.delivered{background:#DCEFFF; color:#1D5FA6;}
+  .status-pill.preparing{background:#FFE8CC; color:#B15A00;}
+  .status-pill.out_for_delivery{background:#DCEFFF; color:#1D5FA6;}
+  .status-pill.delivered{background:#D8F3DC; color:#1B4332;}
   .status-pill.cancelled{background:#FDECEC; color:#B3261E;}
-  .order-items-cell{max-width:240px;}
-  .order-items-cell .oi{font-size:12.5px; margin-bottom:2px;}
-  .order-items-cell .oi .code-chip{margin-right:4px;}
-  .admin-empty{text-align:center; padding:70px 20px; color:var(--ink-soft);}
-  .admin-loading{text-align:center; padding:70px 20px; color:var(--ink-soft); font-weight:600;}
+  .empty-state{text-align:center; padding:70px 20px; color:var(--ink-soft);}
+  .loading-state{text-align:center; padding:70px 20px; color:var(--ink-soft); font-weight:600;}
 
-  .img-upload{display:flex; align-items:center; gap:16px;}
-  .img-upload .preview{width:76px; height:76px; border-radius:16px; background:var(--green-whisper); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; border:1.5px dashed var(--line);}
-  .img-upload .preview img{width:100%; height:100%; object-fit:cover;}
-  .img-upload .preview svg{width:30px;height:30px; color:var(--green-fresh);}
-  .img-upload label.upload-btn{padding:10px 16px; border-radius:12px; border:1.5px solid var(--line); font-weight:700; font-size:12.5px; color:var(--green-deep); cursor:pointer; transition:all .2s var(--ease);}
-  .img-upload label.upload-btn:hover{border-color:var(--green-fresh); background:var(--green-whisper);}
-  .img-upload input[type=file]{display:none;}
+  .order-card{background:#fff; border-radius:var(--radius-md); padding:18px; box-shadow:var(--shadow-soft); margin-bottom:14px; animation:cardIn .35s var(--ease);}
+  @keyframes cardIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .order-card .oc-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .order-card .oc-date{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .order-card .oc-items{border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:10px 0; margin:10px 0;}
+  .order-card .oc-item{display:flex; justify-content:space-between; font-size:13px; padding:3px 0; color:var(--ink-soft);}
+  .order-card .oc-item b{color:var(--ink); font-weight:600;}
+  .order-card .oc-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  .order-card .oc-total{font-weight:800; font-family:'Fraunces',serif; font-size:16px; color:var(--green-deep);}
+  .btn-track{padding:9px 16px; border-radius:999px; font-weight:700; font-size:12.5px; background:var(--green-deep); color:#fff; transition:all .2s var(--ease);}
+  .btn-track:hover{background:var(--green-mid); transform:translateY(-2px);}
+
+  /* ---- tracking timeline ---- */
+  .timeline{margin:22px 0;}
+  .tl-step{display:flex; gap:14px; position:relative; padding-bottom:26px;}
+  .tl-step:last-child{padding-bottom:0;}
+  .tl-step .tl-line{position:absolute; left:11px; top:26px; bottom:0; width:2px; background:var(--line);}
+  .tl-step.done .tl-line{background:var(--green-fresh);}
+  .tl-dot{width:24px; height:24px; border-radius:50%; background:var(--green-whisper); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:1; transition:all .3s var(--ease);}
+  .tl-step.done .tl-dot{background:var(--green-fresh); border-color:var(--green-fresh);}
+  .tl-step.current .tl-dot{background:var(--mango); border-color:var(--mango); animation:pulseDot 1.6s ease-in-out infinite;}
+  @keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 rgba(255,182,39,0.35);} 50%{box-shadow:0 0 0 7px rgba(255,182,39,0);}}
+  .tl-dot svg{width:12px;height:12px; color:#fff;}
+  .tl-label{font-weight:700; font-size:14px; color:var(--ink-soft); padding-top:2px;}
+  .tl-step.done .tl-label, .tl-step.current .tl-label{color:var(--ink);}
+  .tl-time{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+  .tl-step.cancelled .tl-dot{background:var(--tomato); border-color:var(--tomato);}
+  .tl-step.cancelled .tl-label{color:var(--tomato);}
+
+  .track-summary{background:var(--green-whisper); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:6px;}
+  .track-summary .row{display:flex; justify-content:space-between; font-size:13px; padding:3px 0;}
+  .track-summary .row span:first-child{color:var(--ink-soft);}
+
+  /* ---- notification bell ---- */
+  .bell-wrap{position:relative;}
+  .bell-btn{position:relative;}
+  .bell-btn .dot{position:absolute; top:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--tomato); border:2px solid var(--white); display:none;}
+  .bell-btn.unread .dot{display:block;}
+  .notif-panel{
+    position:absolute; top:52px; right:0; width:320px; max-height:70vh; overflow-y:auto;
+    background:#fff; border-radius:var(--radius-md); box-shadow:var(--shadow-lift); z-index:60;
+    padding:8px; display:none; flex-direction:column; gap:6px;
+  }
+  .notif-panel.show{display:flex;}
+  .notif-item{padding:12px 14px; border-radius:12px; background:var(--green-whisper); font-size:13px;}
+  .notif-item b{display:block; color:var(--green-deep); margin-bottom:2px;}
+  .notif-item .t{font-size:11px; color:var(--ink-soft); margin-top:3px;}
 
   @media (max-width:720px){
     .form-modal .modal-box{width:100%; padding:28px 22px;}
-    .admin-bar-inner{flex-direction:column; align-items:flex-start; gap:12px;}
-    .admin-body{padding:24px 16px 80px;}
+    .notif-panel{right:-60px; width:300px;}
   }
 </style>
 </head>
@@ -545,10 +546,17 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
         <span id="accountBtnText">Sign in</span>
       </button>
-      <button class="text-btn" id="adminBtn" aria-label="Admin login">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/></svg>
-        <span id="adminBtnText">Admin</span>
+      <button class="text-btn" id="myOrdersBtn" aria-label="My orders">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7l8.7 5 8.7-5M12 22V12"/></svg>
+        <span>My Orders</span>
       </button>
+      <div class="bell-wrap">
+        <button class="icon-btn bell-btn" id="bellBtn" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot" id="bellDot"></span>
+        </button>
+        <div class="notif-panel" id="notifPanel"></div>
+      </div>
       <button class="icon-btn" id="likeToggle" aria-label="Open wishlist">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
         <span class="badge" id="likeBadge">0</span>
@@ -710,27 +718,6 @@
   </div>
 </div>
 
-<!-- ============ ADMIN LOGIN MODAL ============ -->
-<div class="modal-overlay form-modal" id="adminLoginOverlay">
-  <div class="modal-box">
-    <button class="modal-close-x" id="adminLoginClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    <h3>Admin login</h3>
-    <p class="sub">Manage products and view incoming orders.</p>
-    <div class="form-error" id="adminLoginError"></div>
-    <form id="adminLoginForm">
-      <div class="field">
-        <label for="adminUser">Admin email</label>
-        <input type="email" id="adminUser" autocomplete="username" placeholder="Admin email" required>
-      </div>
-      <div class="field">
-        <label for="adminPass">Password</label>
-        <input type="password" id="adminPass" autocomplete="current-password" placeholder="Password" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Log in</button>
-    </form>
-  </div>
-</div>
-
 <!-- ============ CHECKOUT DETAILS MODAL ============ -->
 <div class="modal-overlay form-modal" id="checkoutOverlay">
   <div class="modal-box">
@@ -765,92 +752,22 @@
   </div>
 </div>
 
-<!-- ============ ADMIN DASHBOARD ============ -->
-<div class="admin-panel" id="adminPanel">
-  <div class="admin-bar">
-    <div class="admin-bar-inner">
-      <div>
-        <h2>NEELE admin</h2>
-        <div class="sub" id="adminConnSub">Manage your storefront</div>
-      </div>
-      <div class="admin-tabs">
-        <button class="admin-tab active" id="adminTabProducts">Products</button>
-        <button class="admin-tab" id="adminTabOrders">Orders</button>
-      </div>
-      <button class="text-btn" id="adminLogoutBtn" style="background:rgba(255,255,255,0.12); color:#fff; border-color:transparent;">Log out</button>
-    </div>
+<!-- ============ MY ORDERS DRAWER ============ -->
+<aside class="drawer" id="ordersDrawer" aria-label="My orders">
+  <div class="drawer-head">
+    <h3>My orders</h3>
+    <button class="close-btn" id="closeOrders" aria-label="Close my orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
   </div>
-  <div class="admin-body">
-    <!-- Products view -->
-    <div id="adminProductsView">
-      <div class="admin-section-head">
-        <h3>Products</h3>
-        <button class="btn-small" id="adminAddProductBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
-          Add product
-        </button>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>Product</th><th>Code</th><th>Category</th><th>Price</th><th>Offer price</th><th>Stock</th><th></th></tr></thead>
-          <tbody id="adminProductsBody"></tbody>
-        </table>
-      </div>
-    </div>
-    <!-- Orders view -->
-    <div id="adminOrdersView" style="display:none;">
-      <div class="admin-section-head">
-        <h3>Orders</h3>
-        <button class="btn-small ghost" id="adminRefreshOrdersBtn">Refresh</button>
-      </div>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead><tr><th>Order</th><th>Customer</th><th>Contact number</th><th>Address</th><th>Product(s)</th><th>Total</th><th>Status</th><th>Placed</th></tr></thead>
-          <tbody id="adminOrdersBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+  <div class="drawer-body" id="ordersBody"></div>
+</aside>
 
-<!-- ============ PRODUCT EDITOR MODAL (admin) ============ -->
-<div class="modal-overlay form-modal" id="productEditorOverlay" style="z-index:450;">
-  <div class="modal-box" style="width:480px;">
-    <button class="modal-close-x" id="productEditorClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    <h3 id="productEditorTitle">Add product</h3>
-    <p class="sub">Changes go live on the storefront immediately.</p>
-    <div class="form-error" id="productEditorError"></div>
-    <form id="productEditorForm">
-      <div class="field">
-        <label>Photo</label>
-        <div class="img-upload">
-          <div class="preview" id="peImgPreview"></div>
-          <label class="upload-btn" for="peImgFile">Upload photo</label>
-          <input type="file" id="peImgFile" accept="image/*">
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="peName">Name</label><input type="text" id="peName" required></div>
-        <div class="field"><label for="peCode">Product code</label><input type="text" id="peCode" placeholder="NS-017"></div>
-      </div>
-      <div class="field-row">
-        <div class="field">
-          <label for="peCategory">Category</label>
-          <select id="peCategory"></select>
-        </div>
-        <div class="field"><label for="peUnit">Unit</label><input type="text" id="peUnit" placeholder="1 kg" required></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="pePrice">Price (₹)</label><input type="number" id="pePrice" min="0" step="0.01" required></div>
-        <div class="field"><label for="peOfferPrice">Offer price (₹) <span style="font-weight:400; text-transform:none;">optional</span></label><input type="number" id="peOfferPrice" min="0" step="0.01"></div>
-        <div class="field"><label for="peStock">Stock</label><input type="number" id="peStock" min="0" step="1" required></div>
-      </div>
-      <div class="field">
-        <label for="peDesc">Description</label>
-        <textarea id="peDesc" placeholder="Short product description"></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Save product</button>
-    </form>
+<!-- ============ TRACK ORDER MODAL ============ -->
+<div class="modal-overlay form-modal" id="trackOverlay">
+  <div class="modal-box" style="width:460px; text-align:left;">
+    <button class="modal-close-x" id="trackClose" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 id="trackTitle">Track order</h3>
+    <p class="sub" id="trackDate"></p>
+    <div id="trackBody"></div>
   </div>
 </div>
 
@@ -877,18 +794,13 @@ try{
   }
 }catch(e){ console.warn("Supabase init failed, using local demo store.", e); }
 
-/* ---------- admin + accounts ----------
-   Admin status is decided by Supabase, not the browser: signing in below
-   calls sb.auth.signInWithPassword() against a real Supabase Auth account,
-   then checks the "admins" table (readable only by that same user, via RLS)
-   to confirm this specific account is allowed to manage the store. There is
-   no local password to read out of the page source anymore. */
-const PRODUCT_IMAGES_BUCKET = "product-images";
-let isAdmin = false; // set only after a verified Supabase session + admins-table check
-let currentUser = null;       // Supabase auth user object, when signed in
-let peImageDataUrl = null;    // pending base64 preview for the product editor
-let peImageFile = null;       // pending File object to upload on save
-let editingProductId = null;  // product currently open in the editor, or null when adding
+/* ---------- accounts ----------
+   The admin dashboard lives entirely on admin.html now — this page only
+   deals with customer accounts (Supabase Auth, optional, just pre-fills
+   checkout) and never checks or stores admin status. */
+let currentUser = null; // Supabase auth user object, when signed in
+let notifiedStatuses = JSON.parse(localStorage.getItem("neele_notified_statuses") || "{}"); // {order_id: last-notified status}
+let myOrdersCache = []; // last fetched result of get_my_orders(), used by the tracking modal
 
 /* ---------- device identity (anonymous cart/like owner) ---------- */
 function getDeviceId(){
@@ -1049,13 +961,20 @@ async function placeOrder(items, total, details){
   if(SUPA_READY){
     try{
       const {data, error} = await sb.from("orders").insert({
-        device_id: DEVICE_ID, total, status:"confirmed", items,
+        device_id: DEVICE_ID, total, status:"pending", items,
         customer_name: details?.name || null,
         phone: details?.phone || null,
         address: details?.address || null,
         email: details?.email || null,
       }).select().single();
-      if(!error && data) return data.id ? ("NL" + String(data.id).padStart(6,"0")) : orderId;
+      if(!error && data){
+        // Placing an order ourselves is a status change we already know about —
+        // remember it so the notification poller doesn't re-announce it.
+        notifiedStatuses[data.id] = data.status;
+        localStorage.setItem("neele_notified_statuses", JSON.stringify(notifiedStatuses));
+        refreshMyOrders();
+        return data.id ? ("NL" + String(data.id).padStart(6,"0")) : orderId;
+      }
     }catch(e){ console.warn("Order insert failed, showing local confirmation.", e); }
   }
   return orderId;
@@ -1435,7 +1354,7 @@ document.getElementById("cartToggle").addEventListener("click", openCart);
 document.getElementById("closeCart").addEventListener("click", closeCart);
 document.getElementById("likeToggle").addEventListener("click", openWish);
 document.getElementById("closeWish").addEventListener("click", closeWish);
-overlay.addEventListener("click", ()=>{ closeCart(); closeWish(); });
+overlay.addEventListener("click", ()=>{ closeCart(); closeWish(); closeOrders(); });
 
 /* ---------- search ---------- */
 document.getElementById("searchInput").addEventListener("input", (e)=>{
@@ -1547,310 +1466,220 @@ async function signOutUser(){
 }
 
 /* =========================================================
-   ADMIN LOGIN (hard-coded credentials, client-side gate)
+   MY ORDERS (customer order history, Supabase-backed)
+   Reads go through get_my_orders()/get_order_tracking() — security-
+   definer RPCs that filter to this device's own device_id server-side
+   (see schema.sql). Direct SELECT on "orders" stays admin-only.
 ========================================================= */
-const adminLoginOverlay = document.getElementById("adminLoginOverlay");
-function updateAdminButton(){
-  const btn = document.getElementById("adminBtn");
-  document.getElementById("adminBtnText").textContent = isAdmin ? "Dashboard" : "Admin";
-  btn.classList.toggle("admin-active", isAdmin);
+const ordersDrawer = document.getElementById("ordersDrawer");
+function openOrders(){
+  ordersDrawer.classList.add("show"); overlay.classList.add("show");
+  refreshMyOrders();
 }
-document.getElementById("adminBtn").addEventListener("click", ()=>{
-  if(isAdmin){ openAdminPanel(); return; }
-  document.getElementById("adminLoginError").classList.remove("show");
-  document.getElementById("adminLoginForm").reset();
-  adminLoginOverlay.classList.add("show");
-});
-document.getElementById("adminLoginClose").addEventListener("click", ()=>adminLoginOverlay.classList.remove("show"));
-adminLoginOverlay.addEventListener("click",(e)=>{ if(e.target===adminLoginOverlay) adminLoginOverlay.classList.remove("show"); });
+function closeOrders(){ ordersDrawer.classList.remove("show"); overlay.classList.remove("show"); }
+document.getElementById("myOrdersBtn").addEventListener("click", openOrders);
+document.getElementById("closeOrders").addEventListener("click", closeOrders);
 
-// Checks whether the currently signed-in Supabase Auth user is listed in
-// the "admins" table. RLS on that table only lets a user read their own
-// row, so a non-admin account simply gets no row back — it can't be
-// tricked into returning true from the client.
-async function checkIsAdmin(){
-  if(!SUPA_READY) return false;
-  try{
-    const {data:{user}} = await sb.auth.getUser();
-    if(!user) return false;
-    const {data, error} = await sb.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
-    if(error) return false;
-    return !!data;
-  }catch(e){ return false; }
+function orderItemsHtml(items){
+  if(!Array.isArray(items) || !items.length) return "";
+  return items.map(it=>`<div class="oc-item"><span>${it.name} × ${it.qty}</span><b>₹${(it.price*it.qty).toFixed(0)}</b></div>`).join("");
 }
 
-document.getElementById("adminLoginForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const err = document.getElementById("adminLoginError");
-  err.classList.remove("show");
+async function refreshMyOrders(){
+  const body = document.getElementById("ordersBody");
   if(!SUPA_READY){
-    err.textContent = "Connect Supabase first — the admin dashboard needs a live project to authenticate against.";
-    err.classList.add("show");
+    body.innerHTML = `<div class="empty-state">Connect Supabase to see your saved order history here. In demo mode, orders aren't persisted.</div>`;
     return;
   }
-  const email = document.getElementById("adminUser").value.trim();
-  const pass = document.getElementById("adminPass").value;
+  body.innerHTML = `<div class="loading-state">Loading your orders…</div>`;
   try{
-    const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+    const {data, error} = await sb.rpc("get_my_orders", {p_device_id: DEVICE_ID});
     if(error) throw error;
-    const admin = await checkIsAdmin();
-    if(!admin){
-      await sb.auth.signOut();
-      err.textContent = "This account isn't set up as an admin.";
-      err.classList.add("show");
+    myOrdersCache = data || [];
+    checkForStatusChanges(myOrdersCache);
+    if(!myOrdersCache.length){
+      body.innerHTML = `<div class="empty-state">No orders yet.<br>Your first order will show up here.</div>`;
       return;
     }
-    isAdmin = true;
-    currentUser = data.user || null;
-    updateAccountButton();
-    updateAdminButton();
-    adminLoginOverlay.classList.remove("show");
-    openAdminPanel();
-  }catch(ex){
-    err.textContent = ex.message || "Incorrect email or password.";
-    err.classList.add("show");
+    body.innerHTML = myOrdersCache.map(o=>{
+      const status = o.status || "pending";
+      const dt = o.created_at ? new Date(o.created_at).toLocaleString() : "";
+      return `<div class="order-card">
+        <div class="oc-head">
+          <div>
+            <span class="code-chip">Order #NL${String(o.id).padStart(6,"0")}</span>
+            <div class="oc-date">${dt}</div>
+          </div>
+          <span class="status-pill ${status}">${STATUS_LABEL[status] || status}</span>
+        </div>
+        <div class="oc-items">${orderItemsHtml(o.items)}</div>
+        <div class="oc-foot">
+          <span class="oc-total">Total ₹${o.total}</span>
+          <button class="btn-track" data-track="${o.id}">Track Order</button>
+        </div>
+      </div>`;
+    }).join("");
+    body.querySelectorAll("[data-track]").forEach(b=>b.addEventListener("click", ()=>openTrackOrder(parseInt(b.dataset.track))));
+  }catch(e){
+    console.warn("Could not load orders", e);
+    body.innerHTML = `<div class="empty-state">Couldn't load your orders right now. Please try again.</div>`;
   }
-});
+}
 
-document.getElementById("adminLogoutBtn").addEventListener("click", async ()=>{
-  isAdmin = false;
-  if(SUPA_READY){ try{ await sb.auth.signOut(); }catch(e){} }
-  currentUser = null;
-  updateAccountButton();
-  updateAdminButton();
-  closeAdminPanel();
-});
+/* ---------- track order ---------- */
+const STATUS_FLOW = ["pending","confirmed","preparing","out_for_delivery","delivered"];
+const STATUS_LABEL = {pending:"Order Placed", confirmed:"Confirmed", preparing:"Preparing", out_for_delivery:"Out for Delivery", delivered:"Delivered", cancelled:"Cancelled"};
+const STATUS_ICON_DONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M4 12l5 5L20 6"/></svg>`;
+
+const trackOverlay = document.getElementById("trackOverlay");
+function closeTrackOrder(){ trackOverlay.classList.remove("show"); }
+document.getElementById("trackClose").addEventListener("click", closeTrackOrder);
+trackOverlay.addEventListener("click", (e)=>{ if(e.target===trackOverlay) closeTrackOrder(); });
+
+async function openTrackOrder(orderId){
+  document.getElementById("trackTitle").textContent = `Order #NL${String(orderId).padStart(6,"0")}`;
+  document.getElementById("trackDate").textContent = "Loading…";
+  document.getElementById("trackBody").innerHTML = `<div class="loading-state">Loading tracking info…</div>`;
+  trackOverlay.classList.add("show");
+  if(!SUPA_READY) return;
+  try{
+    const {data, error} = await sb.rpc("get_order_tracking", {p_order_id: orderId, p_device_id: DEVICE_ID});
+    if(error) throw error;
+    const o = Array.isArray(data) ? data[0] : data;
+    if(!o){ document.getElementById("trackBody").innerHTML = `<div class="empty-state">Order not found.</div>`; return; }
+    renderTrackBody(o);
+  }catch(e){
+    console.warn("Could not load tracking", e);
+    document.getElementById("trackBody").innerHTML = `<div class="empty-state">Couldn't load tracking info right now.</div>`;
+  }
+}
+
+function renderTrackBody(o){
+  document.getElementById("trackDate").textContent = o.created_at ? new Date(o.created_at).toLocaleString() : "";
+  const isCancelled = o.status === "cancelled";
+  const currentIdx = STATUS_FLOW.indexOf(o.status);
+  const historyByStatus = {};
+  (o.history || []).forEach(h => { if(!historyByStatus[h.status]) historyByStatus[h.status] = h.created_at; });
+
+  const timelineHtml = isCancelled
+    ? `<div class="tl-step cancelled current"><div class="tl-dot">✕</div><div><div class="tl-label">Cancelled</div><div class="tl-time">${historyByStatus.cancelled ? new Date(historyByStatus.cancelled).toLocaleString() : ""}</div></div></div>`
+    : STATUS_FLOW.map((s, i)=>{
+        const done = i < currentIdx, current = i === currentIdx;
+        const cls = done ? "done" : current ? "current" : "";
+        const time = historyByStatus[s] ? new Date(historyByStatus[s]).toLocaleString() : "";
+        return `<div class="tl-step ${cls}">
+          <div class="tl-line"></div>
+          <div class="tl-dot">${done ? STATUS_ICON_DONE : ""}</div>
+          <div><div class="tl-label">${STATUS_LABEL[s]}</div><div class="tl-time">${time}</div></div>
+        </div>`;
+      }).join("");
+
+  document.getElementById("trackBody").innerHTML = `
+    <div class="track-summary">
+      <div class="row"><span>Total</span><span><b>₹${o.total}</b></span></div>
+      <div class="row"><span>Delivery address</span><span style="text-align:right; max-width:230px;">${o.address || "—"}</span></div>
+    </div>
+    <div class="timeline">${timelineHtml}</div>
+    <div class="oc-items" style="border:none; padding-top:0;">${orderItemsHtml(o.items)}</div>
+  `;
+}
 
 /* =========================================================
-   ADMIN DASHBOARD — products & orders
+   CUSTOMER NOTIFICATIONS (status-change toasts + bell + sound)
+   Polls get_my_orders() periodically and diffs against the last
+   status we already notified about (kept in localStorage), so a
+   refresh never re-plays a notification for a status the customer
+   has already seen.
 ========================================================= */
-const adminPanel = document.getElementById("adminPanel");
-function openAdminPanel(){
-  adminPanel.classList.add("show");
-  document.getElementById("adminConnSub").textContent = SUPA_READY ? "Connected to Supabase — changes save live." : "Demo mode — changes apply to this browser session only.";
-  showAdminTab("products");
-  renderAdminProducts();
-}
-function closeAdminPanel(){ adminPanel.classList.remove("show"); }
-function showAdminTab(tab){
-  const isProducts = tab === "products";
-  document.getElementById("adminTabProducts").classList.toggle("active", isProducts);
-  document.getElementById("adminTabOrders").classList.toggle("active", !isProducts);
-  document.getElementById("adminProductsView").style.display = isProducts ? "" : "none";
-  document.getElementById("adminOrdersView").style.display = isProducts ? "none" : "";
-  if(!isProducts) renderAdminOrders();
-}
-document.getElementById("adminTabProducts").addEventListener("click", ()=>showAdminTab("products"));
-document.getElementById("adminTabOrders").addEventListener("click", ()=>showAdminTab("orders"));
-document.getElementById("adminRefreshOrdersBtn").addEventListener("click", renderAdminOrders);
+let notifications = JSON.parse(localStorage.getItem("neele_notif_log") || "[]");
+let unreadCount = 0;
+let notifAudioCtx = null;
 
-function renderAdminProducts(){
-  const body = document.getElementById("adminProductsBody");
-  if(!PRODUCTS.length){
-    body.innerHTML = `<tr><td colspan="7"><div class="admin-empty">No products yet. Add your first one.</div></td></tr>`;
-    return;
-  }
-  body.innerHTML = PRODUCTS.map(p=>{
-    const lowStock = p.stock<=6 && p.stock>0, outOfStock = p.stock<=0;
-    const hasOffer = effectivePrice(p) < Number(p.price);
-    return `<tr>
-      <td>
-        <div class="p-name-cell">
-          <div class="p-thumb">${productMedia(p)}</div>
-          <div><div class="n">${p.name}</div><div class="c">${p.unit}</div></div>
-        </div>
-      </td>
-      <td><span class="code-chip">${productCode(p)}</span></td>
-      <td>${p.category}</td>
-      <td>₹${p.price}</td>
-      <td>${hasOffer ? "₹"+p.offer_price : "—"}</td>
-      <td><span class="stock-chip ${outOfStock?'out':lowStock?'low':''}">${p.stock}</span></td>
-      <td>
-        <div class="row-actions">
-          <button class="icon-mini" data-edit-product="${p.id}" aria-label="Edit ${p.name}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-          <button class="icon-mini danger" data-delete-product="${p.id}" aria-label="Delete ${p.name}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
-        </div>
-      </td>
-    </tr>`;
-  }).join("");
-  body.querySelectorAll("[data-edit-product]").forEach(b=>b.addEventListener("click",()=>openProductEditor(parseInt(b.dataset.editProduct))));
-  body.querySelectorAll("[data-delete-product]").forEach(b=>b.addEventListener("click",()=>deleteProduct(parseInt(b.dataset.deleteProduct))));
-}
-
-async function renderAdminOrders(){
-  const body = document.getElementById("adminOrdersBody");
-  if(!SUPA_READY){
-    body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Connect Supabase to receive and view real orders here.</div></td></tr>`;
-    return;
-  }
-  body.innerHTML = `<tr><td colspan="8"><div class="admin-loading">Loading orders…</div></td></tr>`;
+function playNotifSound(){
   try{
-    const {data, error} = await sb.from("orders").select("*").order("created_at", {ascending:false});
-    if(error) throw error;
-    if(!data || !data.length){
-      body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">No orders yet.</div></td></tr>`;
-      return;
-    }
-    body.innerHTML = data.map(o=>{
-      const items = Array.isArray(o.items) ? o.items : [];
-      const itemsHtml = items.map(it=>`<div class="oi"><span class="code-chip">${it.product_code || ("#"+it.product_id)}</span>${it.name} × ${it.qty}</div>`).join("");
-      const status = o.status || "confirmed";
-      const dt = o.created_at ? new Date(o.created_at).toLocaleString() : "";
-      return `<tr>
-        <td><span class="code-chip">NL${String(o.id).padStart(6,"0")}</span></td>
-        <td>${o.customer_name || "—"}${o.email ? `<div class="c" style="font-size:11.5px;color:var(--ink-soft);">${o.email}</div>`:""}</td>
-        <td>${o.phone || "—"}</td>
-        <td class="order-items-cell">${o.address || "—"}</td>
-        <td class="order-items-cell">${itemsHtml || "—"}</td>
-        <td>₹${o.total}</td>
-        <td>
-          <select class="status-select" data-order-status="${o.id}" style="border:1.5px solid var(--line); border-radius:8px; padding:5px 8px; font-size:12px; font-weight:700;">
-            ${["confirmed","packed","delivered","cancelled"].map(s=>`<option value="${s}" ${s===status?'selected':''}>${s}</option>`).join("")}
-          </select>
-        </td>
-        <td style="white-space:nowrap; font-size:12px; color:var(--ink-soft);">${dt}</td>
-      </tr>`;
-    }).join("");
-    body.querySelectorAll("[data-order-status]").forEach(sel=>{
-      sel.addEventListener("change", async ()=>{
-        try{ await sb.from("orders").update({status: sel.value}).eq("id", sel.dataset.orderStatus); showToast("Order status updated", "heart"); }
-        catch(e){ showToast("Could not update status", "heart"); }
-      });
-    });
-  }catch(e){
-    body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Could not load orders.</div></td></tr>`;
-  }
+    if(!notifAudioCtx) notifAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(notifAudioCtx.state === "suspended") notifAudioCtx.resume();
+    const ctx = notifAudioCtx, now = ctx.currentTime;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = "sine"; osc.frequency.value = 1040;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.16, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.34);
+  }catch(e){ /* autoplay blocked until the visitor interacts with the page — safe to skip */ }
 }
 
-/* ---------- product editor (add / edit) ---------- */
-const productEditorOverlay = document.getElementById("productEditorOverlay");
-function fillCategorySelect(){
-  const sel = document.getElementById("peCategory");
-  sel.innerHTML = CATEGORIES.filter(c=>c.key!=="all").map(c=>`<option value="${c.key}">${c.label}</option>`).join("");
+function renderNotifPanel(){
+  const panel = document.getElementById("notifPanel");
+  if(!notifications.length){ panel.innerHTML = `<div class="notif-item" style="text-align:center; color:var(--ink-soft); background:transparent;">No notifications yet.</div>`; return; }
+  panel.innerHTML = notifications.slice(0, 15).map(n=>`
+    <div class="notif-item"><b>${n.text}</b><div class="t">${new Date(n.at).toLocaleTimeString()}</div></div>
+  `).join("");
 }
-function openProductEditor(id){
-  editingProductId = id || null;
-  peImageDataUrl = null; peImageFile = null;
-  fillCategorySelect();
-  document.getElementById("productEditorError").classList.remove("show");
-  document.getElementById("productEditorForm").reset();
-  const preview = document.getElementById("peImgPreview");
-  if(editingProductId){
-    const p = PRODUCTS.find(pp=>pp.id===editingProductId);
-    document.getElementById("productEditorTitle").textContent = "Edit product";
-    document.getElementById("peName").value = p.name;
-    document.getElementById("peCode").value = productCode(p);
-    document.getElementById("peCategory").value = p.category;
-    document.getElementById("peUnit").value = p.unit;
-    document.getElementById("pePrice").value = p.price;
-    document.getElementById("peOfferPrice").value = p.offer_price || "";
-    document.getElementById("peStock").value = p.stock;
-    document.getElementById("peDesc").value = p.desc || "";
-    preview.innerHTML = p.image_url ? `<img src="${p.image_url}">` : (ICONS[p.icon]||ICONS.leaf);
-  }else{
-    document.getElementById("productEditorTitle").textContent = "Add product";
-    preview.innerHTML = ICONS.leaf;
-  }
-  productEditorOverlay.classList.add("show");
-}
-function closeProductEditor(){ productEditorOverlay.classList.remove("show"); }
-document.getElementById("adminAddProductBtn").addEventListener("click", ()=>openProductEditor(null));
-document.getElementById("productEditorClose").addEventListener("click", closeProductEditor);
-productEditorOverlay.addEventListener("click",(e)=>{ if(e.target===productEditorOverlay) closeProductEditor(); });
+renderNotifPanel();
 
-document.getElementById("peImgFile").addEventListener("change", (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  peImageFile = file;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    peImageDataUrl = reader.result;
-    document.getElementById("peImgPreview").innerHTML = `<img src="${peImageDataUrl}">`;
-  };
-  reader.readAsDataURL(file);
+document.getElementById("bellBtn").addEventListener("click", (e)=>{
+  e.stopPropagation();
+  const panel = document.getElementById("notifPanel");
+  panel.classList.toggle("show");
+  if(panel.classList.contains("show")){
+    unreadCount = 0;
+    document.getElementById("bellBtn").classList.remove("unread");
+  }
+});
+document.addEventListener("click", (e)=>{
+  const panel = document.getElementById("notifPanel");
+  if(panel.classList.contains("show") && !panel.contains(e.target) && !document.getElementById("bellBtn").contains(e.target)){
+    panel.classList.remove("show");
+  }
 });
 
-async function uploadProductImage(productId){
-  if(!peImageFile) return null;
-  if(SUPA_READY){
-    try{
-      const ext = (peImageFile.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `products/${productId}-${Date.now()}.${ext}`;
-      const {error} = await sb.storage.from(PRODUCT_IMAGES_BUCKET).upload(path, peImageFile, {upsert:true});
-      if(error) throw error;
-      const {data} = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
-      return data.publicUrl;
-    }catch(e){
-      console.warn("Image upload failed, falling back to inline preview.", e);
-      showToast("Photo upload failed, used a local preview instead", "heart");
-      return peImageDataUrl;
+function checkForStatusChanges(orders){
+  let changed = false;
+  orders.forEach(o=>{
+    const prev = notifiedStatuses[o.id];
+    if(prev !== o.status){
+      // Skip the very first time we ever see an order (prev === undefined) unless
+      // it's already past "pending" — otherwise placing an order would immediately
+      // "notify" about its own starting status.
+      if(prev !== undefined){
+        const text = o.status === "cancelled"
+          ? `🔔 Order #NL${String(o.id).padStart(6,"0")} has been cancelled`
+          : `🔔 Order #NL${String(o.id).padStart(6,"0")} is now: ${STATUS_LABEL[o.status] || o.status}`;
+        notifications.unshift({text, at: Date.now()});
+        notifications = notifications.slice(0, 30);
+        unreadCount++;
+        document.getElementById("bellBtn").classList.add("unread");
+        showToast(text, "heart");
+        playNotifSound();
+      }
+      notifiedStatuses[o.id] = o.status;
+      changed = true;
     }
+  });
+  if(changed){
+    localStorage.setItem("neele_notified_statuses", JSON.stringify(notifiedStatuses));
+    localStorage.setItem("neele_notif_log", JSON.stringify(notifications));
+    renderNotifPanel();
   }
-  return peImageDataUrl; // demo mode: store the base64 preview directly (session only)
 }
 
-document.getElementById("productEditorForm").addEventListener("submit", async (e)=>{
-  e.preventDefault();
-  const err = document.getElementById("productEditorError");
-  err.classList.remove("show");
-
-  const name = document.getElementById("peName").value.trim();
-  const code = document.getElementById("peCode").value.trim();
-  const category = document.getElementById("peCategory").value;
-  const unit = document.getElementById("peUnit").value.trim();
-  const price = parseFloat(document.getElementById("pePrice").value);
-  const offerRaw = document.getElementById("peOfferPrice").value;
-  const offer_price = offerRaw === "" ? null : parseFloat(offerRaw);
-  const stock = parseInt(document.getElementById("peStock").value, 10);
-  const desc = document.getElementById("peDesc").value.trim();
-
-  if(!name || !unit || isNaN(price) || isNaN(stock)){
-    err.textContent = "Please fill in name, unit, price and stock.";
-    err.classList.add("show");
-    return;
-  }
-
-  const isNew = !editingProductId;
-  const id = editingProductId || (Math.max(0, ...PRODUCTS.map(p=>p.id)) + 1);
-  let image_url = isNew ? null : PRODUCTS.find(p=>p.id===editingProductId)?.image_url || null;
-
-  const uploaded = await uploadProductImage(id);
-  if(uploaded) image_url = uploaded;
-
-  const record = {id, name, category, price, offer_price, unit, stock, icon: (isNew ? (PRODUCTS.find(p=>p.category===category)?.icon || "leaf") : (PRODUCTS.find(p=>p.id===id)?.icon || "leaf")), image_url, product_code: code || null, desc};
-
-  if(SUPA_READY){
+// Lightweight polling fallback (no Supabase Realtime here — see README's
+// "Customer accounts" section for why: Realtime is gated by the same RLS
+// that keeps the orders table admin-only, so an anonymous device can't
+// subscribe to it directly). Cheap and infrequent — one small RPC call.
+let notifPollTimer = null;
+function startNotificationPolling(){
+  if(!SUPA_READY) return;
+  if(notifPollTimer) clearInterval(notifPollTimer);
+  notifPollTimer = setInterval(async ()=>{
     try{
-      const {error} = await sb.from("products").upsert(record, {onConflict:"id"});
+      const {data, error} = await sb.rpc("get_my_orders", {p_device_id: DEVICE_ID});
       if(error) throw error;
-    }catch(ex){
-      err.textContent = "Could not save to Supabase: " + (ex.message || "unknown error");
-      err.classList.add("show");
-      return;
-    }
-  }
-
-  if(isNew) PRODUCTS.push(record);
-  else PRODUCTS = PRODUCTS.map(p=>p.id===id ? {...p, ...record} : p);
-
-  closeProductEditor();
-  renderAdminProducts();
-  renderProducts();
-  showToast(isNew ? "Product added" : "Product updated", "heart");
-});
-
-async function deleteProduct(id){
-  const p = PRODUCTS.find(pp=>pp.id===id);
-  if(!p) return;
-  if(!confirm(`Remove "${p.name}" from the storefront?`)) return;
-  if(SUPA_READY){
-    try{ const {error} = await sb.from("products").delete().eq("id", id); if(error) throw error; }
-    catch(e){ showToast("Could not delete from Supabase", "heart"); return; }
-  }
-  PRODUCTS = PRODUCTS.filter(pp=>pp.id!==id);
-  renderAdminProducts();
-  renderProducts();
-  showToast("Product removed", "heart");
+      if(data) checkForStatusChanges(data);
+    }catch(e){ /* ignore — will retry next tick */ }
+  }, 25000);
 }
 
 /* ---------- init ---------- */
@@ -1864,24 +1693,21 @@ async function deleteProduct(id){
   renderCartDrawer();
   renderWishDrawer();
   updateBadges();
-  updateAdminButton();
   observeReveals();
 
   if(SUPA_READY){
     try{
       const {data:{session}} = await sb.auth.getSession();
       currentUser = session?.user || null;
-      isAdmin = currentUser ? await checkIsAdmin() : false;
       updateAccountButton();
-      updateAdminButton();
       sb.auth.onAuthStateChange(async (_event, session)=>{
         currentUser = session?.user || null;
-        isAdmin = currentUser ? await checkIsAdmin() : false;
         updateAccountButton();
-        updateAdminButton();
-        if(!isAdmin) closeAdminPanel();
       });
     }catch(e){ /* auth not configured yet — ignore */ }
+    // Seed today's known statuses quietly, then start polling for changes.
+    refreshMyOrders();
+    startNotificationPolling();
   }
 })();
 </script>
