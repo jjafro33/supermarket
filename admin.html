@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Bootstrap 5 CSS -->
+<link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+  rel="stylesheet"
+>
+
+<!-- Bootstrap Icons -->
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEELE admin — Dashboard</title>
+<title>DEMO MART admin — Dashboard</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,6 +149,15 @@
   .stat-card.accent-tomato .n{color:var(--tomato);}
   @media (max-width:1100px){ .stat-grid{grid-template-columns:repeat(3, 1fr);} }
   @media (max-width:620px){ .stat-grid{grid-template-columns:repeat(2, 1fr);} }
+  @media (max-width:900px){
+    .topbar-right{flex-wrap:wrap; margin-left:0; width:100%; justify-content:flex-start;}
+    .tabs{width:100%;}
+  }
+  @media (max-width:480px){
+    .sound-btn{font-size:11px; padding:8px 12px; white-space:normal; text-align:center;}
+    .topbar-inner{padding:14px 16px;}
+    .stat-grid{grid-template-columns:1fr 1fr; gap:10px;}
+  }
 
   .btn-small{padding:10px 18px; border-radius:999px; font-weight:700; font-size:13px; background:var(--green-deep); color:#fff; transition:all .25s var(--ease); display:inline-flex; align-items:center; gap:6px;}
   .btn-small:hover{background:var(--green-mid); transform:translateY(-2px);}
@@ -214,10 +234,16 @@
     .modal-box{padding:26px 20px;}
     .dash-body{padding:20px 16px 90px;}
     .notif-panel{right:12px; left:12px; width:auto;}
+    .field-row{flex-direction:column; gap:0;}
+    .row-actions{gap:6px;}
   }
 </style>
 </head>
 <body>
+  <!-- Bootstrap 5 JavaScript -->
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+</script>
 
 <!-- ============ LOADING ============ -->
 <div class="spinner-screen" id="bootScreen">Loading admin…</div>
@@ -228,8 +254,8 @@
     <div class="login-logo">
       <span class="mark" id="loginMark"></span>
       <span>
-        <b>NEELE</b>
-        <span>SUPERMARKET ADMIN</span>
+        <b>DEMO MART</b>
+        <span>ADMIN</span>
       </span>
     </div>
     <h1>Admin sign in</h1>
@@ -238,7 +264,7 @@
     <form id="loginForm">
       <div class="field">
         <label for="loginEmail">Admin email</label>
-        <input type="email" id="loginEmail" autocomplete="username" placeholder="you@neelesupermarket.com" required>
+        <input type="email" id="loginEmail" autocomplete="username" placeholder="you@demomart.com" required>
       </div>
       <div class="field">
         <label for="loginPass">Password</label>
@@ -260,7 +286,7 @@
       <div class="brand">
         <span class="mark" id="brandMark"></span>
         <div>
-          <h1>NEELE admin</h1>
+          <h1>DEMO MART admin</h1>
           <div class="sub" id="connSub">Connecting…</div>
         </div>
       </div>
@@ -386,7 +412,7 @@
 
 <script>
 /* =========================================================
-   NEELE admin — dashboard logic
+   DEMO MART admin — dashboard logic
    Separate page from the storefront. Nothing here is ever
    loaded by index.html; a customer never sees this code.
 ========================================================= */
@@ -546,7 +572,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e)=>{
   const err = document.getElementById("loginError");
   err.classList.remove("show");
   if(!SUPA_READY){
-    err.textContent = "Connect Supabase first — see README for setup steps.";
+    err.textContent = "Connect NUBLIX TECH first — see README for setup steps.";
     err.classList.add("show");
     return;
   }
@@ -597,7 +623,7 @@ async function enterDashboard(){
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("bootScreen").style.display = "none";
   document.getElementById("dash").classList.add("show");
-  document.getElementById("connSub").textContent = SUPA_READY ? "Connected to Supabase — changes save live." : "Demo mode — connect Supabase to manage a real store.";
+  document.getElementById("connSub").textContent = SUPA_READY ? "Connected to NUBLIX TECH — changes save live." : "Demo mode — connect NUBLIX TECH to manage a real store.";
   await loadProducts();
   showTab("overview");
   subscribeRealtime();
@@ -617,7 +643,7 @@ async function loadProducts(){
 
 async function loadOrders(){
   const body = document.getElementById("ordersBody");
-  if(!SUPA_READY){ body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Connect Supabase to view orders.</div></td></tr>`; return; }
+  if(!SUPA_READY){ body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">Connect NUBLIX TECH to view orders.</div></td></tr>`; return; }
   body.innerHTML = `<tr><td colspan="8"><div class="admin-loading">Loading orders…</div></td></tr>`;
   try{
     const {data, error} = await sb.from("orders").select("*").order("created_at", {ascending:false});
@@ -786,7 +812,7 @@ document.getElementById("productEditorForm").addEventListener("submit", async (e
     return;
   }
   if(!SUPA_READY){
-    err.textContent = "Connect Supabase to save products.";
+    err.textContent = "Connect NUBLIX TECH to save products.";
     err.classList.add("show");
     return;
   }
@@ -801,7 +827,7 @@ document.getElementById("productEditorForm").addEventListener("submit", async (e
     const {error} = await sb.from("products").upsert(record, {onConflict:"id"});
     if(error) throw error;
   }catch(ex){
-    err.textContent = "Could not save to Supabase: " + (ex.message || "unknown error");
+    err.textContent = "Could not save to NUBLIX TECH: " + (ex.message || "unknown error");
     err.classList.add("show");
     return;
   }
@@ -818,7 +844,7 @@ async function deleteProduct(id){
   if(!confirm(`Remove "${p.name}" from the storefront?`)) return;
   if(SUPA_READY){
     try{ const {error} = await sb.from("products").delete().eq("id", id); if(error) throw error; }
-    catch(e){ showToast("Could not delete from Supabase"); return; }
+    catch(e){ showToast("Could not delete from NUBLIX TECH"); return; }
   }
   PRODUCTS = PRODUCTS.filter(pp=>pp.id!==id);
   renderProducts();
