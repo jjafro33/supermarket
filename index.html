@@ -868,11 +868,11 @@
 const SUPABASE_URL = "https://immpelmybnenrmnoouct.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltbXBlbG15Ym5lbnJtbm9vdWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MzkzNjksImV4cCI6MjEwMjQxNTM2OX0.TrIgYd1Y1ToXIiwIR-y-5T97SCqkLxDGoCPTr4bJMvI";
 
-let supabase = null;
+let sb = null;
 let SUPA_READY = false;
 try{
   if (SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes("YOUR_") && window.supabase){
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     SUPA_READY = true;
   }
 }catch(e){ console.warn("Supabase init failed, using local demo store.", e); }
@@ -979,7 +979,7 @@ function setConn(status){
 async function loadProducts(){
   if(SUPA_READY){
     try{
-      const {data, error} = await supabase.from("products").select("*").order("id");
+      const {data, error} = await sb.from("products").select("*").order("id");
       if(error) throw error;
       if(data && data.length){
         PRODUCTS = data;
@@ -996,8 +996,8 @@ async function loadCartAndLikes(){
   if(SUPA_READY){
     try{
       const [{data:cartData, error:cartErr}, {data:likeData, error:likeErr}] = await Promise.all([
-        supabase.from("cart_items").select("product_id, qty").eq("device_id", DEVICE_ID),
-        supabase.from("likes").select("product_id").eq("device_id", DEVICE_ID),
+        sb.from("cart_items").select("product_id, qty").eq("device_id", DEVICE_ID),
+        sb.from("likes").select("product_id").eq("device_id", DEVICE_ID),
       ]);
       if(!cartErr && cartData) CART = cartData.map(r => ({product_id:r.product_id, qty:r.qty}));
       if(!likeErr && likeData) LIKES = likeData.map(r => r.product_id);
@@ -1017,9 +1017,9 @@ async function syncCartRow(product_id, qty){
   if(SUPA_READY){
     try{
       if(qty <= 0){
-        await supabase.from("cart_items").delete().eq("device_id", DEVICE_ID).eq("product_id", product_id);
+        await sb.from("cart_items").delete().eq("device_id", DEVICE_ID).eq("product_id", product_id);
       }else{
-        await supabase.from("cart_items").upsert({device_id:DEVICE_ID, product_id, qty}, {onConflict:"device_id,product_id"});
+        await sb.from("cart_items").upsert({device_id:DEVICE_ID, product_id, qty}, {onConflict:"device_id,product_id"});
       }
       return;
     }catch(e){ console.warn("Cart sync failed, saved locally instead.", e); }
@@ -1031,9 +1031,9 @@ async function syncLikeRow(product_id, liked){
   if(SUPA_READY){
     try{
       if(liked){
-        await supabase.from("likes").upsert({device_id:DEVICE_ID, product_id}, {onConflict:"device_id,product_id"});
+        await sb.from("likes").upsert({device_id:DEVICE_ID, product_id}, {onConflict:"device_id,product_id"});
       }else{
-        await supabase.from("likes").delete().eq("device_id", DEVICE_ID).eq("product_id", product_id);
+        await sb.from("likes").delete().eq("device_id", DEVICE_ID).eq("product_id", product_id);
       }
       return;
     }catch(e){ console.warn("Like sync failed, saved locally instead.", e); }
@@ -1045,7 +1045,7 @@ async function placeOrder(items, total, details){
   const orderId = "NL" + Date.now().toString().slice(-8);
   if(SUPA_READY){
     try{
-      const {data, error} = await supabase.from("orders").insert({
+      const {data, error} = await sb.from("orders").insert({
         device_id: DEVICE_ID, total, status:"confirmed", items,
         customer_name: details?.name || null,
         phone: details?.phone || null,
@@ -1398,7 +1398,7 @@ document.getElementById("checkoutForm").addEventListener("submit", async (e)=>{
     renderProducts();
     renderCartDrawer();
     if(SUPA_READY){
-      try{ await supabase.from("cart_items").delete().eq("device_id", DEVICE_ID); }catch(e){}
+      try{ await sb.from("cart_items").delete().eq("device_id", DEVICE_ID); }catch(e){}
     }
     persistLocal();
   }else{
@@ -1518,12 +1518,12 @@ document.getElementById("authForm").addEventListener("submit", async (e)=>{
   const fullName = document.getElementById("authName").value.trim();
   try{
     if(authMode === "signup"){
-      const {data, error} = await supabase.auth.signUp({email, password, options:{data:{full_name: fullName}}});
+      const {data, error} = await sb.auth.signUp({email, password, options:{data:{full_name: fullName}}});
       if(error) throw error;
       currentUser = data.user || null;
       showToast("Account created", "heart");
     }else{
-      const {data, error} = await supabase.auth.signInWithPassword({email, password});
+      const {data, error} = await sb.auth.signInWithPassword({email, password});
       if(error) throw error;
       currentUser = data.user || null;
       showToast("Signed in", "heart");
@@ -1537,7 +1537,7 @@ document.getElementById("authForm").addEventListener("submit", async (e)=>{
 });
 
 async function signOutUser(){
-  if(SUPA_READY){ try{ await supabase.auth.signOut(); }catch(e){} }
+  if(SUPA_READY){ try{ await sb.auth.signOut(); }catch(e){} }
   currentUser = null;
   updateAccountButton();
   showToast("Signed out", "heart");
@@ -1649,7 +1649,7 @@ async function renderAdminOrders(){
   }
   body.innerHTML = `<tr><td colspan="8"><div class="admin-loading">Loading orders…</div></td></tr>`;
   try{
-    const {data, error} = await supabase.from("orders").select("*").order("created_at", {ascending:false});
+    const {data, error} = await sb.from("orders").select("*").order("created_at", {ascending:false});
     if(error) throw error;
     if(!data || !data.length){
       body.innerHTML = `<tr><td colspan="8"><div class="admin-empty">No orders yet.</div></td></tr>`;
@@ -1677,7 +1677,7 @@ async function renderAdminOrders(){
     }).join("");
     body.querySelectorAll("[data-order-status]").forEach(sel=>{
       sel.addEventListener("change", async ()=>{
-        try{ await supabase.from("orders").update({status: sel.value}).eq("id", sel.dataset.orderStatus); showToast("Order status updated", "heart"); }
+        try{ await sb.from("orders").update({status: sel.value}).eq("id", sel.dataset.orderStatus); showToast("Order status updated", "heart"); }
         catch(e){ showToast("Could not update status", "heart"); }
       });
     });
@@ -1740,9 +1740,9 @@ async function uploadProductImage(productId){
     try{
       const ext = (peImageFile.name.split(".").pop() || "jpg").toLowerCase();
       const path = `products/${productId}-${Date.now()}.${ext}`;
-      const {error} = await supabase.storage.from(PRODUCT_IMAGES_BUCKET).upload(path, peImageFile, {upsert:true});
+      const {error} = await sb.storage.from(PRODUCT_IMAGES_BUCKET).upload(path, peImageFile, {upsert:true});
       if(error) throw error;
-      const {data} = supabase.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
+      const {data} = sb.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(path);
       return data.publicUrl;
     }catch(e){
       console.warn("Image upload failed, falling back to inline preview.", e);
@@ -1785,7 +1785,7 @@ document.getElementById("productEditorForm").addEventListener("submit", async (e
 
   if(SUPA_READY){
     try{
-      const {error} = await supabase.from("products").upsert(record, {onConflict:"id"});
+      const {error} = await sb.from("products").upsert(record, {onConflict:"id"});
       if(error) throw error;
     }catch(ex){
       err.textContent = "Could not save to Supabase: " + (ex.message || "unknown error");
@@ -1808,7 +1808,7 @@ async function deleteProduct(id){
   if(!p) return;
   if(!confirm(`Remove "${p.name}" from the storefront?`)) return;
   if(SUPA_READY){
-    try{ const {error} = await supabase.from("products").delete().eq("id", id); if(error) throw error; }
+    try{ const {error} = await sb.from("products").delete().eq("id", id); if(error) throw error; }
     catch(e){ showToast("Could not delete from Supabase", "heart"); return; }
   }
   PRODUCTS = PRODUCTS.filter(pp=>pp.id!==id);
@@ -1833,10 +1833,10 @@ async function deleteProduct(id){
 
   if(SUPA_READY){
     try{
-      const {data:{session}} = await supabase.auth.getSession();
+      const {data:{session}} = await sb.auth.getSession();
       currentUser = session?.user || null;
       updateAccountButton();
-      supabase.auth.onAuthStateChange((_event, session)=>{
+      sb.auth.onAuthStateChange((_event, session)=>{
         currentUser = session?.user || null;
         updateAccountButton();
       });
