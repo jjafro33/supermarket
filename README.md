@@ -35,11 +35,17 @@ Save and reload — the pill in the header will switch from **"Demo mode"** to *
 A **Sign in** button in the header opens a sign in / sign up modal backed by Supabase Auth (email + password). Signed-in shoppers get their name/email pre-filled at checkout. Auth is optional — anyone can still check out as a guest by filling in the delivery details form. In demo mode (no Supabase connected), the account button just lets you know accounts need Supabase.
 
 ## Admin dashboard
-Click **Admin** in the header and log in with:
-- **Username:** `neela@2026`
-- **Password:** `neela@mku`
+Admin access is a real Supabase Auth login now — nothing is hard-coded into `index.html`, and there's nothing to read out of the page source. To set up your one admin account:
 
-These credentials are hard-coded into `index.html` (search for `ADMIN_USERNAME` / `ADMIN_PASSWORD`) — change them there to whatever you like before you publish the site. This is a simple client-side gate, not a real authentication system, so treat the admin URL/credentials as something to keep private rather than something that's cryptographically secure; anyone who views the page source can see the current values.
+1. In the Supabase dashboard, go to **Authentication → Users → Add user** and create the admin with an email + password.
+2. Copy that user's **UID** from the users list.
+3. In **SQL Editor**, run:
+   ```sql
+   insert into admins (user_id) values ('paste-the-uid-here');
+   ```
+4. On the site, click **Admin** in the header and sign in with that email + password.
+
+Only accounts listed in the `admins` table can add/edit/delete products, upload images, view orders, or change order status — this is enforced by Row Level Security in `schema.sql`, not just by the login screen, so it holds even if someone calls the Supabase API directly with the public anon key. To add a second admin later, repeat steps 1–3 with their account. To revoke access, delete their row from `admins`.
 
 From the dashboard you can:
 - **Products tab** — add, edit, or delete products: name, category, unit, price, an optional **offer price** (shown as a strike-through deal on the storefront when it's lower than the price), stock, product code, description, and a photo upload (saved to the `product-images` bucket).
@@ -53,4 +59,4 @@ You can still add, edit, or remove rows in the `products` table directly from th
 
 ## Notes
 - Shoppers aren't required to log in to shop — each browser gets a random anonymous `device_id` (stored in localStorage) that scopes their cart and wishlist, and every checkout collects delivery details directly. Signing in (Supabase Auth) just pre-fills those details and is the seed for real per-account order history later.
-- Row Level Security is enabled on every table but kept open (`using (true)`) since there's no server-verified auth layer behind the admin dashboard or checkout yet — tighten these policies (e.g. require `auth.role() = 'authenticated'` for product writes, or move product writes behind a Supabase Edge Function) before going fully live with real customer and payment data.
+- Row Level Security is enabled on every table. Products and orders can be **read** by anyone (browsing) and orders can be **inserted** by anyone (checkout), but writing to `products`, viewing or updating `orders`, and uploading to the `product-images` bucket all require a Supabase Auth session that's listed in the `admins` table — checked server-side by Postgres, not by the browser. `cart_items` and `likes` stay open per-device since they're anonymous, non-sensitive scratch data.

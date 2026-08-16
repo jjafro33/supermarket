@@ -42,6 +42,16 @@ create table if not exists likes (
   primary key (device_id, product_id)
 );
 
+-- ---------- ADMINS ----------
+-- One row per Supabase Auth user allowed to manage products/orders.
+-- Create the admin's login under Authentication -> Users (email + password),
+-- then insert their auth.users id here — e.g.:
+--   insert into admins (user_id) values ('paste-the-user-uuid-here');
+create table if not exists admins (
+  user_id     uuid primary key references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now()
+);
+
 -- ---------- ORDERS ----------
 create table if not exists orders (
   id          bigint generated always as identity primary key,
@@ -60,38 +70,62 @@ alter table orders add column if not exists email         text;
 
 -- =========================================================
 -- ROW LEVEL SECURITY
--- This demo uses an anonymous per-browser device_id (stored
--- in localStorage) instead of Supabase Auth, so policies are
--- kept open for the anon key. For production, swap in
--- Supabase Auth + auth.uid()-scoped policies instead.
+-- Admin-only actions (product writes, image uploads, viewing
+-- orders, updating order status) are gated on a real Supabase
+-- Auth session that is also listed in the "admins" table below
+-- — not on a client-side password check. Shoppers keep working
+-- anonymously via device_id for cart/likes/checkout.
 -- =========================================================
 
 alter table products enable row level security;
 alter table cart_items enable row level security;
 alter table likes enable row level security;
 alter table orders enable row level security;
+alter table admins enable row level security;
 
+-- is_admin(): true only for a logged-in Supabase Auth user whose id
+-- appears in the admins table. security definer so it can read the
+-- admins table even from policies on other tables.
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from admins where user_id = auth.uid()
+  );
+$$;
+
+-- admins: each admin can see their own row; nobody can write to it
+-- from the client (add admins via the SQL editor / dashboard only).
+drop policy if exists "Admins can read own row" on admins;
+create policy "Admins can read own row" on admins
+  for select using (auth.uid() = user_id);
+
+-- products: everyone can browse; only an admin can write.
 drop policy if exists "Public can read products" on products;
 create policy "Public can read products" on products
   for select using (true);
 
--- The admin dashboard (username/password login built into index.html) writes
--- products using the same public anon key as the storefront, since there's no
--- Supabase Auth layer yet. Keep this open for now; tighten it (e.g. require
--- auth.role() = 'authenticated' or a service-role edge function) before you
--- hand real product management over to more than one trusted person.
 drop policy if exists "Anyone can add, edit or remove products" on products;
-create policy "Anyone can add, edit or remove products" on products
-  for insert with check (true);
+drop policy if exists "Admins can insert products" on products;
+create policy "Admins can insert products" on products
+  for insert with check (is_admin());
 
 drop policy if exists "Anyone can update products" on products;
-create policy "Anyone can update products" on products
-  for update using (true) with check (true);
+drop policy if exists "Admins can update products" on products;
+create policy "Admins can update products" on products
+  for update using (is_admin()) with check (is_admin());
 
 drop policy if exists "Anyone can delete products" on products;
-create policy "Anyone can delete products" on products
-  for delete using (true);
+drop policy if exists "Admins can delete products" on products;
+create policy "Admins can delete products" on products
+  for delete using (is_admin());
 
+-- cart_items / likes: still open per-device (anonymous shopping,
+-- scoped by a random device_id, not sensitive data).
 drop policy if exists "Anyone can manage their own cart" on cart_items;
 create policy "Anyone can manage their own cart" on cart_items
   for all using (true) with check (true);
@@ -100,9 +134,25 @@ drop policy if exists "Anyone can manage their own likes" on likes;
 create policy "Anyone can manage their own likes" on likes
   for all using (true) with check (true);
 
+-- orders: any shopper (incl. anonymous) can place an order, but only
+-- an admin can list existing orders or change their status.
 drop policy if exists "Anyone can insert and read orders" on orders;
-create policy "Anyone can insert and read orders" on orders
-  for all using (true) with check (true);
+
+drop policy if exists "Anyone can place an order" on orders;
+create policy "Anyone can place an order" on orders
+  for insert with check (true);
+
+drop policy if exists "Admins can view orders" on orders;
+create policy "Admins can view orders" on orders
+  for select using (is_admin());
+
+drop policy if exists "Admins can update order status" on orders;
+create policy "Admins can update order status" on orders
+  for update using (is_admin()) with check (is_admin());
+
+drop policy if exists "Admins can delete orders" on orders;
+create policy "Admins can delete orders" on orders
+  for delete using (is_admin());
 
 -- =========================================================
 -- STORAGE — product photos
@@ -130,16 +180,19 @@ begin
     for select using (bucket_id = 'product-images');
 
   drop policy if exists "Anyone can upload product images" on storage.objects;
-  create policy "Anyone can upload product images" on storage.objects
-    for insert with check (bucket_id = 'product-images');
+  drop policy if exists "Admins can upload product images" on storage.objects;
+  create policy "Admins can upload product images" on storage.objects
+    for insert with check (bucket_id = 'product-images' and is_admin());
 
   drop policy if exists "Anyone can replace product images" on storage.objects;
-  create policy "Anyone can replace product images" on storage.objects
-    for update using (bucket_id = 'product-images') with check (bucket_id = 'product-images');
+  drop policy if exists "Admins can replace product images" on storage.objects;
+  create policy "Admins can replace product images" on storage.objects
+    for update using (bucket_id = 'product-images' and is_admin()) with check (bucket_id = 'product-images' and is_admin());
 
   drop policy if exists "Anyone can delete product images" on storage.objects;
-  create policy "Anyone can delete product images" on storage.objects
-    for delete using (bucket_id = 'product-images');
+  drop policy if exists "Admins can delete product images" on storage.objects;
+  create policy "Admins can delete product images" on storage.objects
+    for delete using (bucket_id = 'product-images' and is_admin());
 exception when others then
   raise notice 'Could not create storage policies automatically (%). Set them up from Storage → product-images → Policies instead.', sqlerrm;
 end $$;

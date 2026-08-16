@@ -719,8 +719,8 @@
     <div class="form-error" id="adminLoginError"></div>
     <form id="adminLoginForm">
       <div class="field">
-        <label for="adminUser">Username</label>
-        <input type="text" id="adminUser" autocomplete="username" placeholder="Username" required>
+        <label for="adminUser">Admin email</label>
+        <input type="email" id="adminUser" autocomplete="username" placeholder="Admin email" required>
       </div>
       <div class="field">
         <label for="adminPass">Password</label>
@@ -877,11 +877,14 @@ try{
   }
 }catch(e){ console.warn("Supabase init failed, using local demo store.", e); }
 
-/* ---------- admin + accounts ---------- */
+/* ---------- admin + accounts ----------
+   Admin status is decided by Supabase, not the browser: signing in below
+   calls sb.auth.signInWithPassword() against a real Supabase Auth account,
+   then checks the "admins" table (readable only by that same user, via RLS)
+   to confirm this specific account is allowed to manage the store. There is
+   no local password to read out of the page source anymore. */
 const PRODUCT_IMAGES_BUCKET = "product-images";
-const ADMIN_USERNAME = "neela@2026";
-const ADMIN_PASSWORD = "neela@mku";
-let isAdmin = sessionStorage.getItem("neele_admin") === "1";
+let isAdmin = false; // set only after a verified Supabase session + admins-table check
 let currentUser = null;       // Supabase auth user object, when signed in
 let peImageDataUrl = null;    // pending base64 preview for the product editor
 let peImageFile = null;       // pending File object to upload on save
@@ -1561,26 +1564,59 @@ document.getElementById("adminBtn").addEventListener("click", ()=>{
 document.getElementById("adminLoginClose").addEventListener("click", ()=>adminLoginOverlay.classList.remove("show"));
 adminLoginOverlay.addEventListener("click",(e)=>{ if(e.target===adminLoginOverlay) adminLoginOverlay.classList.remove("show"); });
 
-document.getElementById("adminLoginForm").addEventListener("submit", (e)=>{
+// Checks whether the currently signed-in Supabase Auth user is listed in
+// the "admins" table. RLS on that table only lets a user read their own
+// row, so a non-admin account simply gets no row back — it can't be
+// tricked into returning true from the client.
+async function checkIsAdmin(){
+  if(!SUPA_READY) return false;
+  try{
+    const {data:{user}} = await sb.auth.getUser();
+    if(!user) return false;
+    const {data, error} = await sb.from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+    if(error) return false;
+    return !!data;
+  }catch(e){ return false; }
+}
+
+document.getElementById("adminLoginForm").addEventListener("submit", async (e)=>{
   e.preventDefault();
-  const user = document.getElementById("adminUser").value.trim();
+  const err = document.getElementById("adminLoginError");
+  err.classList.remove("show");
+  if(!SUPA_READY){
+    err.textContent = "Connect Supabase first — the admin dashboard needs a live project to authenticate against.";
+    err.classList.add("show");
+    return;
+  }
+  const email = document.getElementById("adminUser").value.trim();
   const pass = document.getElementById("adminPass").value;
-  if(user === ADMIN_USERNAME && pass === ADMIN_PASSWORD){
+  try{
+    const {data, error} = await sb.auth.signInWithPassword({email, password: pass});
+    if(error) throw error;
+    const admin = await checkIsAdmin();
+    if(!admin){
+      await sb.auth.signOut();
+      err.textContent = "This account isn't set up as an admin.";
+      err.classList.add("show");
+      return;
+    }
     isAdmin = true;
-    sessionStorage.setItem("neele_admin", "1");
+    currentUser = data.user || null;
+    updateAccountButton();
     updateAdminButton();
     adminLoginOverlay.classList.remove("show");
     openAdminPanel();
-  }else{
-    const err = document.getElementById("adminLoginError");
-    err.textContent = "Incorrect username or password.";
+  }catch(ex){
+    err.textContent = ex.message || "Incorrect email or password.";
     err.classList.add("show");
   }
 });
 
-document.getElementById("adminLogoutBtn").addEventListener("click", ()=>{
+document.getElementById("adminLogoutBtn").addEventListener("click", async ()=>{
   isAdmin = false;
-  sessionStorage.removeItem("neele_admin");
+  if(SUPA_READY){ try{ await sb.auth.signOut(); }catch(e){} }
+  currentUser = null;
+  updateAccountButton();
   updateAdminButton();
   closeAdminPanel();
 });
@@ -1835,10 +1871,15 @@ async function deleteProduct(id){
     try{
       const {data:{session}} = await sb.auth.getSession();
       currentUser = session?.user || null;
+      isAdmin = currentUser ? await checkIsAdmin() : false;
       updateAccountButton();
-      sb.auth.onAuthStateChange((_event, session)=>{
+      updateAdminButton();
+      sb.auth.onAuthStateChange(async (_event, session)=>{
         currentUser = session?.user || null;
+        isAdmin = currentUser ? await checkIsAdmin() : false;
         updateAccountButton();
+        updateAdminButton();
+        if(!isAdmin) closeAdminPanel();
       });
     }catch(e){ /* auth not configured yet — ignore */ }
   }
